@@ -162,6 +162,9 @@ span, a, a:hover {
     font-size: 4.4rem;
     font-weight: 300;
   }
+  .contact .contact-form {
+    padding: 80px 50px;
+  }
 }
 @media only screen and (min-width: 1170px) {
   .cd-headline {
@@ -1356,9 +1359,6 @@ span, a, a:hover {
   z-index: 2;
   -webkit-transition-delay: .3s;
           transition-delay: .3s;
-}
-.contact .contact-form {
-  padding: 80px 50px;
 }
 .contact .contact-form input[type='text'],
 .contact .contact-form input[type='email'],
