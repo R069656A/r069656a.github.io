@@ -1,0 +1,540 @@
+<html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title> Financial Calculation </title>
+        <style>
+          * { -webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box; }
+            body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin-bottom: 60px;}
+            .output {
+            font-weight:bold;
+            }
+            #payment {text-decoration:underline;}
+            th, td {
+            vertical-align: top;
+            }
+            h2 {margin:0;font-size: 20px;color: blue;}
+            label { display: block;padding-bottom: 8px; }
+            select,
+            input[type='text']{ padding: 4px 8px;display: block;font-size: 18px;border: 0;border-left: 2px solid blue;width:100%; }
+
+            input[type='text']+select{margin-top:6px;border: 2px solid #a5cf4d;color: #1b6160;font-weight: bold;}
+            input[type='text']+button { margin-top: 6px;padding: 4px 8px;border: 0;background: blue;color: #FFF;}
+            .highlight td{color:#FFF; background:blue;vertical-align: middle;padding:8px 15px;}
+            .highlight h2{color:#FFF;}
+            #password_prompt{width:100%;height:100%;left: 0;top: 0;z-index: 8;}
+            input[type="text"]:disabled{color:blue;}
+            @media print{.toHide{display:none;}}
+        </style>
+    </head>
+    <body>
+        <h1 style="padding: 0 15px;">HDB Cash Budget</h1>
+        <table style="width: 100%;table-layout: fixed;border-spacing: 15px;">
+            <tr>
+              <td>
+                <label for="purchase_price">Purchase Price:</label>
+                <input type="text" id="purchase_price" placeholder="e.g. 1000000"/>
+              </td>
+              <td>
+                <label for="valuation">Valuation:</label>
+                <input type="text" id="valuation" placeholder="e.g. 1000000"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="loan_type">Loan Type</label>
+                <select id="loan_type">
+                  <option value="loan_bank">Bank Loan</option>
+                  <option value="loan_hdb">HDB Loan</option>
+                  <option value="loan_no">No Loan</option>
+                </select>
+              </td>
+              <td>
+                <label for="citizenship">Citizenship</label>
+                <select id="citizenship">
+                  <option value="sc">SC</option>
+                  <option value="spr">SPR</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2"><h2>CPF & Grants</h2></td>
+            </tr>
+            <tr>
+              <td>
+                <label for="cpf_oa">Total CPF (OA):</label>
+                <input type="text" id="cpf_oa" placeholder="e.g. 1000000"/>
+              </td>
+              <td>
+                <label for="housing_grant">Housing Grant:</label>
+                <input type="text" id="housing_grant" placeholder="e.g. 80000"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="proximity_grant">Proximity Grant:</label>
+                <input type="text" id="proximity_grant" placeholder="e.g. 30000"/>
+              </td>
+            </tr>
+            <tr class="highlight">
+              <td>
+                <h2>Total CPF & Grants</h2>
+                <div><i>(Total CPF + Housing Grant + Proximity Grant)</i></div>
+              </td>
+              <td>
+                <h2>$<span id="total_cpf_grant">0</span></h2>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2"><h2>CPF Deductibles</h2></td>
+            </tr>
+            <tr>
+              <td>
+                <label for="bsd">Buyer Stamp Duty:</label>
+                <input type="text" disabled id="bsd" placeholder="e.g. 1000000"/>
+                <select id="bsd_payment">
+                  <option value="cash">Cash</option>
+                  <option value="cpf">CPF</option>
+                </select>
+              </td>
+              <td>
+                <label for="absd">Additional Buyer Stamp Duty (<span id="absd_obligation">0</span>%):</label>
+                <input type="text" disabled id="absd" placeholder="e.g. 1000000"/>
+                <select id="absd_payment">
+                  <option value="cash">Cash</option>
+                  <option value="cpf">CPF</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="legal">Legal Fee:</label>
+                <input type="text"  id="legal" placeholder="e.g. 1500-3500"/>
+                <select id="legal_payment">
+                  <option value="cash">Cash</option>
+                  <option value="cpf">CPF</option>
+                </select>
+              </td>
+              <td>
+                <label for="hps">HPS Premium:</label>
+                <input type="text"  id="hps" placeholder="e.g. 1000000"/>
+                <select id="hps_payment">
+                  <option value="cash">Cash</option>
+                  <option value="cpf">CPF</option>
+                </select>
+              </td>
+            </tr>
+            <tr class="highlight">
+              <td>
+                <h2>Balance CPF & Grants:</h2>
+                <div><i>(Total CPF & Grants - CPF Deductibles)</i></div>
+              </td>
+              <td>
+                <h2>$<span id="balance_cpf_grants">0</span></h2>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <h2>Based on Valuation / Purchase Price: $<span id="value_to_compare">0</span></h2>
+                <div><i>(Whichever Lower)</i></div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="ltv">Loan-to-value (maximum <span id="max_ltv">75</span>%):</label>
+                <input type="text" id="ltv" placeholder="e.g. 75%"/>
+              </td>
+              <td>
+                <label for="loan_amount">Loan Amount:</label>
+                <input type="text" id="loan_amount" placeholder="e.g. 1000000"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="option_fee">Option Fee:</label>
+                <input type="text" id="option_fee" placeholder="e.g. 1000"/>
+              </td>
+              <td>
+                <label for="exercise_fee">Exercise Fee:</label>
+                <input type="text" id="exercise_fee" placeholder="e.g. 4000"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="min_cash">Minimum <span id="min_cash_number">5</span>% Cash:</label>
+                <input type="text" id="min_cash" disabled placeholder="e.g. 1000000"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="used_cpf_grant">CPF & Grants Used:</label>
+                <input type="text" id="used_cpf_grant" placeholder="e.g. 1000000"/>
+              </td>
+              <td>
+                <label for="cash_top_up">Cash Top-Up:</label>
+                <input type="text" id="cash_top_up" placeholder="e.g. 1000000"/>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2"><hr/></td>
+            </tr>
+            <tr>
+              <td>
+                <label for="valuation_fee">Valuation Fee:</label>
+                <input type="text" id="valuation_fee" placeholder="e.g. 120"/>
+              </td>
+              <td>
+                <label for="resale_application">Resale Application:</label>
+                <input type="text" id="resale_application" placeholder="e.g. 80"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="cov">Cash Over Valuation:</label>
+                <input type="text" id="cov" disabled placeholder="e.g. 1000000"/>
+              </td>
+              <td>
+                <label for="others">Others:</label>
+                <input type="text" id="others" placeholder="e.g. 500"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="agent_fee">Agent Fee:</label>
+                <input type="text" id="agent_fee" disabled placeholder="e.g. 1000000"/>
+                <button>1% + gst</button>
+              </td>
+            </tr>
+            
+            <tr class="highlight">
+              <td>
+                <h2>Total cash needed:</h2>
+                <div><i id="cash_payables"></i></div>
+              </td>
+              <td>
+                <h2>$<span id="total_cash_needed">0</span></h2>
+              </td>
+            </tr>
+        </table>
+
+        <script>
+          let correct_password = "Gemini!"
+          if (localStorage.expiry === undefined || new Date().getTime() > localStorage.expiry) {
+            password_prompt("Please enter your password:", "Submit", function(pwd) {
+                if (pwd != correct_password) {
+                  alert("Wrong password!")
+                  localStorage.expiry = 0;
+                  location.reload();
+                  return;
+                }
+            });
+          }
+
+          let tdsr = 55;
+          let msr = 30;
+          let ltv_bank_max = 75;
+          let ltv_hdb_max = 80;
+
+          var text_inputs = document.querySelectorAll('input[type="text"]');
+          var selects = document.querySelectorAll('select');
+          function updateFields() {
+            let purchase_price = getAmount(document.getElementById("purchase_price").value);
+            if (parseFloat(purchase_price)) {
+              if (document.getElementById("valuation").value.trim() == '' || !parseFloat(document.getElementById("valuation").value) ) {
+                document.getElementById("valuation").value = numberWithCommas(purchase_price);
+              }
+
+              // calculate bsd
+              let bsd = 0;
+              if (purchase_price <= 180000) {
+                bsd = 0.01*purchase_price;
+              } else if (purchase_price > 180000 && purchase_price <= 360000) {
+                bsd = 0.02*purchase_price - 1800;
+              } else if (purchase_price > 360000 && purchase_price <= 1000000) {
+                bsd = 0.03*purchase_price - 5400;
+              } else if (purchase_price > 1000000 && purchase_price <= 1500000) {
+                bsd = 0.04*purchase_price - 15400;
+              } else if (purchase_price > 1500000 && purchase_price <= 3000000) {
+                bsd = 0.05*purchase_price - 30400;
+              } else if (purchase_price > 3000000) {
+                bsd = 0.06*purchase_price - 60400;
+              }
+              bsd = Math.floor(bsd);
+              document.getElementById("bsd").value = numberWithCommas(bsd);
+              
+              if (document.getElementById("citizenship").value == "spr") {
+                document.getElementById("absd_obligation").innerHTML = 5;
+                document.getElementById("absd").value=numberWithCommas(Math.floor(0.05*purchase_price));
+              } else { // no absd
+                document.getElementById("absd_obligation").innerHTML = 0;
+                document.getElementById("absd").value=numberWithCommas(0);
+              }
+
+              // value to compare
+              let valuation = getAmountElement("valuation");
+              let value_to_compare = (purchase_price > valuation) ? valuation : purchase_price;
+              document.getElementById("value_to_compare").innerHTML= numberWithCommas(value_to_compare);
+
+              let loan_type = document.getElementById("loan_type").value;
+              let max_ltv = 0;
+              let min_cash = 0;
+              document.getElementById("min_cash_number").innerHTML = "0";
+              document.getElementById("min_cash").value = min_cash;
+              if ( loan_type == "loan_bank" ) {
+                max_ltv = ltv_bank_max;
+                document.getElementById("min_cash_number").innerHTML = "5";
+                min_cash = 0.05 * value_to_compare
+                document.getElementById("min_cash").value = numberWithCommas(min_cash);
+              } else if ( loan_type == "loan_hdb" ) {
+                max_ltv = ltv_hdb_max;
+              }
+              document.getElementById("max_ltv").innerHTML = max_ltv;
+
+              // loan calculation
+              if (!parseInt(document.getElementById("ltv").value)) {
+                document.getElementById("ltv").value = max_ltv;
+                document.getElementById("loan_amount").value = numberWithCommas(max_ltv/100 * value_to_compare);
+              }
+
+              if (document.getElementById("ltv").value != localStorage["ltv"]) {
+                document.getElementById("loan_amount").value = numberWithCommas(document.getElementById("ltv").value/100 * value_to_compare);
+              }
+
+              // check loan amount possible or not
+              let loan_amount = getAmountElement("loan_amount");
+              if (loan_amount/value_to_compare*100 > max_ltv){ // loan exceed
+                document.getElementById("ltv").value = max_ltv;
+                document.getElementById("loan_amount").value = numberWithCommas(max_ltv/100 * value_to_compare);
+              } else {
+                document.getElementById("ltv").value = numberWithCommas(loan_amount/value_to_compare*100);
+              }
+
+              // CPF calculation  
+              let total_cpf_grant = 0;
+              let cpf_oa = getAmount(document.getElementById("cpf_oa").value);
+              let housing_grant = getAmount(document.getElementById("housing_grant").value);
+              let proximity_grant = getAmount(document.getElementById("proximity_grant").value);
+              document.getElementById("cpf_oa").value = numberWithCommas(cpf_oa);
+              document.getElementById("housing_grant").value = numberWithCommas(housing_grant);
+              document.getElementById("proximity_grant").value = numberWithCommas(proximity_grant);
+              total_cpf_grant += cpf_oa;
+              total_cpf_grant += housing_grant;
+              total_cpf_grant += proximity_grant;
+              document.getElementById("total_cpf_grant").innerHTML = numberWithCommas(total_cpf_grant);
+
+              let balance_cpf_grants = total_cpf_grant;
+              if (document.getElementById("bsd_payment").value == "cpf") {
+                if (balance_cpf_grants > getAmountElement("bsd")) {
+                  balance_cpf_grants -= getAmountElement("bsd");
+                } else {
+                  document.getElementById("bsd_payment").value = "cash";
+                }
+              }
+              if (document.getElementById("absd_payment").value == "cpf") {
+                if (balance_cpf_grants > getAmountElement("absd")) {
+                  balance_cpf_grants -= getAmountElement("absd");
+                } else {
+                  document.getElementById("absd_payment").value = "cash";
+                }
+              }
+              if (document.getElementById("legal_payment").value == "cpf") {
+                if (balance_cpf_grants > getAmountElement("legal")) {
+                  balance_cpf_grants -= getAmountElement("legal");
+                } else {
+                  document.getElementById("legal_payment").value = "cash";
+                }
+              }
+              if (document.getElementById("hps_payment").value == "cpf") {
+                if (balance_cpf_grants > getAmountElement("hps")) {
+                  balance_cpf_grants -= getAmountElement("hps");
+                } else {
+                  document.getElementById("hps_payment").value = "cash";
+                }
+              }
+              document.getElementById("balance_cpf_grants").innerHTML = numberWithCommas(balance_cpf_grants);
+              // end of balance cpf calculation 
+
+              let option_fee = getAmountElement("option_fee");
+              let exercise_fee = getAmountElement("exercise_fee");
+              let remaining_downpayment = value_to_compare - loan_amount - min_cash - option_fee - exercise_fee;      
+              let used_cpf_grant = getAmountElement("used_cpf_grant");   
+              let cash_top_up = getAmountElement("cash_top_up");        
+              if (!used_cpf_grant || used_cpf_grant > balance_cpf_grants) { 
+                if (remaining_downpayment - balance_cpf_grants > 0) { 
+                  document.getElementById("used_cpf_grant").value = numberWithCommas(balance_cpf_grants);
+                  document.getElementById("cash_top_up").value = numberWithCommas(remaining_downpayment - balance_cpf_grants);
+                } else {
+                  if (remaining_downpayment < balance_cpf_grants) {
+                    document.getElementById("used_cpf_grant").value = numberWithCommas(remaining_downpayment);
+                  } else {
+                    document.getElementById("used_cpf_grant").value = numberWithCommas(balance_cpf_grants - remaining_downpayment);
+                  }
+                  document.getElementById("cash_top_up").value = 0;
+                }  
+              } else {
+                if (used_cpf_grant+cash_top_up != remaining_downpayment && remaining_downpayment > used_cpf_grant) {
+                  document.getElementById("cash_top_up").value = numberWithCommas(remaining_downpayment-used_cpf_grant);
+                }
+              }
+
+              // cov
+              document.getElementById("cov").value = 0 ;
+              if (purchase_price-valuation > 0) {
+                document.getElementById("cov").value = numberWithCommas(purchase_price-valuation);
+              }
+              
+              let agent_fee = 0.01 * purchase_price;
+              agent_fee*=1.09
+              document.getElementById("agent_fee").value = numberWithCommas(agent_fee);
+              
+              let cash_payables = [];
+              let total_cash_needed = option_fee + exercise_fee + getAmountElement("valuation_fee") + getAmountElement("resale_application") + getAmountElement("others") + getAmountElement("cov") + getAmountElement("agent_fee") + getAmountElement("min_cash");
+              if (document.getElementById("bsd_payment").value == "cash" && getAmountElement("bsd")) {
+                total_cash_needed += getAmountElement("bsd");
+                cash_payables.push("Buyer Stamp Duty");
+              }
+              if (document.getElementById("absd_payment").value == "cash" && getAmountElement("absd")) {
+                total_cash_needed += getAmountElement("absd");
+                cash_payables.push("Additional Buyer Stamp Duty");
+              }
+              if (document.getElementById("legal_payment").value == "cash" && getAmountElement("legal")) {
+                total_cash_needed += getAmountElement("legal");
+                cash_payables.push("Legal Fee");
+              }
+              if (document.getElementById("hps_payment").value == "cash" && getAmountElement("hps")) {
+                total_cash_needed += getAmountElement("hps");
+                cash_payables.push("HPS Premium");
+              }
+              cash_payables.push("Option Fee","Exercise Fee","Valuation Fee","Resale Application Fee", "Others");
+              if (getAmountElement("cov")) {
+                cash_payables.push("COV");
+              }
+              if (getAmountElement("min_cash")) {
+                cash_payables.push("Minimum 5% Cash");
+              }
+              if (getAmountElement("cash_top_up")) {
+                total_cash_needed += getAmountElement("cash_top_up");
+                cash_payables.push("Cash Top-Up");
+              }
+              cash_payables.push("Agency Fee");
+
+              document.getElementById("cash_payables").innerHTML="("+cash_payables.join(" + ")+")"
+              document.getElementById("total_cash_needed").innerHTML = numberWithCommas( total_cash_needed);
+            } // end of if purchase price
+
+            if (window.localStorage) { 
+              for (i = 0; i < text_inputs.length; i++) {
+                localStorage[text_inputs[i].id] = text_inputs[i].value;
+              }
+
+              for (i = 0; i < selects.length; i++) {
+                localStorage[selects[i].id] = selects[i].value;
+              }
+            }
+          }
+
+          for (i = 0; i < text_inputs.length; i++) {
+            text_inputs[i].onchange=updateFields;
+          }
+
+          for (i = 0; i < selects.length; i++) {
+            selects[i].onchange=updateFields;
+          }
+
+          window.onload = function() {
+            if (window.localStorage) {
+              for (var k in localStorage){
+                 if (document.getElementById(k)){
+                  document.getElementById(k).value = localStorage[k];
+                 }
+              }
+              updateFields();
+            }
+          }
+
+          function getAmountElement(id) {
+            return getAmount(document.getElementById(id).value);
+          }
+
+          const getAmount = (amount) => {
+            let parsedVal = parseFloat(amount.replace(/[$,]/g, ""));
+            if (parsedVal) {
+              return parsedVal;
+             }
+            else { return 0; }
+          }
+
+          function numberWithCommas(x) {
+              x=x.toFixed(2);
+              var parts = x.toString().split(".");
+              parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+              return parts.join(".");
+
+              return x;
+          }
+
+          function password_prompt (label_message, button_message, arg3) {
+
+            if (typeof label_message !== "string") var label_message = "Password:";
+            if (typeof button_message !== "string") var button_message = "Submit";
+            if (typeof arg3 === "function") {
+                var callback = arg3;
+            }
+            if (typeof callback !== "function") var callback = function(password){};
+
+            var submit = function() {
+                var date = new Date();
+                localStorage.expiry = date.setDate(date.getDate() + 1);
+
+                callback(input.value);
+                document.body.removeChild(div);
+                window.removeEventListener("resize", resize, false);
+            };
+            var resize = function() {
+                div.style.left = ((window.innerWidth / 2) - (width / 2)) + "px";
+                div.style.top = ((window.innerHeight / 2) - (height / 2)) + "px";
+            };
+
+            var div = document.createElement("div");
+            div.id = "password_prompt";
+            div.style.background = "white";
+            div.style.color = "black";
+            div.style.padding = "16px";
+            div.style.position = "fixed";
+
+            var heading = document.createElement("h1");
+            heading.id = "password_prompt_heading";
+            heading.innerHTML = "Budget Cash Needed";
+            div.appendChild(heading);
+
+            var label = document.createElement("label");
+            label.id = "password_prompt_label";
+            label.innerHTML = label_message;
+            label.for = "password_prompt_input";
+            div.appendChild(label);
+
+            div.appendChild(document.createElement("br"));
+
+            var input = document.createElement("input");
+            input.id = "password_prompt_input";
+            input.type = "password";
+            input.addEventListener("keyup", function(e) {
+                if (event.keyCode == 13) submit();
+            }, false);
+            div.appendChild(input);
+
+            div.appendChild(document.createElement("br"));
+            div.appendChild(document.createElement("br"));
+
+            var button = document.createElement("button");
+            button.innerHTML = button_message;
+            button.addEventListener("click", submit, false);
+            div.appendChild(button);
+
+            document.body.appendChild(div);
+            window.addEventListener("resize", resize, false);
+          };
+        </script>
+              <footer style="font-size: 20px;color: #111;text-align: center;font-size: 20px;text-align: center;background-color: #00a884;padding: 8px 15px;color: #FFF;border-radius: 30px;position: fixed;bottom: 0;right:-25px;padding:8px 50px;z-index:9;"><a href="https://api.whatsapp.com/send?phone=6586989590" style="color: #FFF;font-family: sans-serif;">► WhatsApp&nbsp;8698&nbsp;9590</a></footer>
+    </body>
+</html>

@@ -1,0 +1,226 @@
+<html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title> WeeKheong Loan Calculator </title>
+        <style>
+          * { -webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box; }
+            body{font-family:sans-serif;}
+            .output {
+            font-weight:bold;
+            }
+            #payment {
+            text-decoration:underline;
+            }
+            #graph {
+            border:solid black 1px;
+            }
+            th, td {
+            vertical-align: top;
+            }
+            body,table,select,input{font-size: 14px;}
+            #password_prompt{width:100%;height:100%;left: 0;top: 0;z-index: 8;}
+            @media only screen and (max-width: 720px) {
+              .main_title { width: auto!important; }
+              input {width:100px;}
+              .toHide{display: none;}
+            }
+            @media print{.toHide{display:none;}}
+        </style>
+    </head>
+    <body>
+      <div class="main_title" style="max-width:100%;margin-left:auto;margin-right:auto;width:400px;background-color:#c05f5f;font-family:cursive;color:#fff;padding:14px 10px;margin-bottom:20px"><h1 style=text-align:center;margin:0>Purchase Budget Estimated</h1></div>
+        <table style="margin-left: auto;margin-right: auto;">
+              <tr>
+                <td>Loan Type:</td>
+                <td><select id="loan_type_select" onchange="calculate()">
+                  <option>Bank</option>
+                  <option>HDB</option>
+                </select></td>
+              </tr> 
+              <tr>
+                <td>Monthly Payment($):</td>
+                <td><input id="monthly_payment"></td></td>
+              </tr> 
+              <tr><td>Annual interest (%):</td>
+                <td><input id="apr_bank" onchange="calculate();"></td></tr>
+              <tr><td>Repayment period (years):</td>
+                <td><input id="years_bank" onchange="calculate();"></td>
+                </tr> 
+              <tr class="tohide"><th>Approximate Payments:</th>
+                  <td><button onclick="calculate();">Calculate</button></td></tr>
+                <tr><td colspan="2" style="text-align: center;padding: 15px 0;"><div style="background: #1700cc;color: #FFF;padding: 8px;"><b>Estimated Loan</b></div></td></tr>
+                <tr><td>Amount of the loan:</td>
+              <td><u>$<span class="output" id="amount_bank"></span></u></tr> 
+              <tr><td>Total payment:</td>
+                <td>$<span class="output" id="total_bank"></span></td></tr>
+              <tr><td>Total interest:</td>
+                <td>$<span class="output" id="totalinterest_bank"></span></td></tr>
+                <tr><td><span id="ratio_type_label"></span> Servicing Ratio:</td><td><span id="ratio_percent_label"></span>%</td></tr>
+                <tr><td>Gross Monthly Income:</td><td><u style="font-family: tahoma;">$<span class="output" id="salary_bank"></span></u></td></tr>
+
+                <tr><td>Loan-to-Value (LTV) limit:</td><td>
+                  <span id="ltv_label"></span>% of Purchase Price</td>
+                </tr>    
+                <tr><td>Purchase Budget:</td><td><u style="font-family: tahoma;">$<span class="output" id="purchase_price"></span></u></td></tr>
+              </table>
+
+              <p style="text-align: center;">
+               * This information provided is an estimate and may slightly exceed the actual loan amount due to stress testing.</p>
+
+              <script>
+                let correct_password = "Gemini!"
+                password_prompt("Please enter your password:", "Submit", function(pwd) {
+                    if (pwd != correct_password) {
+                      alert("Wrong password!")
+                      location.reload();
+                      return;
+                    }
+                });
+
+                let tdsr = 55;
+                let msr = 30;
+                let ltv_bank_max = 75;
+                let ltv_hdb_max = 80;
+                var ltv_selected = ltv_bank_max;
+                var sr_selected = tdsr;
+
+                function loan_calculate () {
+                    var pmt = document.getElementById("monthly_payment").value;
+                    var y = document.getElementById("years_bank").value;
+                    var annual_i = document.getElementById("apr_bank").value;
+                    var n = y*12;
+                    var i = annual_i/100/12;
+                    var x = Math.pow(1+i,n);
+                    var pv = pmt/i * (1-(1/x));
+                    
+                    document.getElementById("amount_bank").innerHTML = numberWithCommas(pv);
+                    document.getElementById("total_bank").innerHTML = numberWithCommas(pmt*n);
+                    document.getElementById("totalinterest_bank").innerHTML = numberWithCommas(pmt*n-pv);
+                    document.getElementById("salary_bank").innerHTML = numberWithCommas(pmt/sr_selected*100);
+                    document.getElementById("purchase_price").innerHTML = numberWithCommas(pv/ltv_selected*100);
+                }
+
+                function calculate() {
+                    var loan_type_select_e = document.getElementById("loan_type_select");
+                    var loan_type_text = loan_type_select_e.options[loan_type_select_e.selectedIndex].text;
+
+                    ltv_selected = ltv_bank_max;
+                    sr_selected = tdsr;
+                    document.getElementById("ratio_type_label").innerHTML = "Total Debt"
+                    if (loan_type_text == "HDB") {
+                      ltv_selected = ltv_hdb_max;
+                      sr_selected = msr;
+                      document.getElementById("ratio_type_label").innerHTML = "Mortgage"
+                    }
+                    document.getElementById("ltv_label").innerHTML = ltv_selected;
+                    document.getElementById("ratio_percent_label").innerHTML = sr_selected;
+                    //Look up the input and output elements in the document
+                    
+                    loan_calculate();
+
+                    // Save the user's input so we can restore it the next time they visit
+                    save();
+                    
+                }
+                // Save the user's input as properties of the localStorage object. Those
+                // properties will still be there when the user visits in the future
+                // This storage feature will not work in some browsers (Firefox, e.g.) if you
+                // run the example from a local file:// URL. It does work over HTTP, however.
+                function save(amount, apr, years) {
+                    if (window.localStorage) { // Only do this if the browser supports it
+                      var loan_type_select_e = document.getElementById("loan_type_select");
+                      var loan_type_i = loan_type_select_e.selectedIndex;
+                      localStorage.loan_type_i = loan_type_i;
+                      localStorage.monthly_payment = document.getElementById("monthly_payment").value;
+                      localStorage.apr_bank = document.getElementById("apr_bank").value;
+                      localStorage.years_bank = document.getElementById("years_bank").value;
+                    }
+                }
+                function numberWithCommas(x) {
+                    x=x.toFixed(2);
+                    var parts = x.toString().split(".");
+                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    return parts.join(".");
+
+                    return x;
+                }
+                // Automatically attempt to restore input fields when the document first loads.
+                window.onload = function() {
+                    // If the browser supports localStorage and we have some stored data
+                    if (window.localStorage && localStorage.loan_type_i) {
+                      document.getElementById('loan_type_select').getElementsByTagName('option')[localStorage.loan_type_i].selected = 'selected'
+
+                        document.getElementById("monthly_payment").value = localStorage.monthly_payment;
+                        document.getElementById("apr_bank").value = localStorage.apr_bank;
+                        document.getElementById("years_bank").value = localStorage.years_bank;
+                    } else {
+                      document.getElementById("monthly_payment").value = 1000;
+                      document.getElementById("apr_bank").value = 4;
+                      document.getElementById("years_bank").value = 25;
+                    }
+
+                    calculate();
+                    
+                };
+
+                function password_prompt (label_message, button_message, arg3) {
+
+                  if (typeof label_message !== "string") var label_message = "Password:";
+                  if (typeof button_message !== "string") var button_message = "Submit";
+                  if (typeof arg3 === "function") {
+                      var callback = arg3;
+                  }
+                  if (typeof callback !== "function") var callback = function(password){};
+
+                  var submit = function() {
+                      callback(input.value);
+                      document.body.removeChild(div);
+                      window.removeEventListener("resize", resize, false);
+                  };
+                  var resize = function() {
+                      div.style.left = ((window.innerWidth / 2) - (width / 2)) + "px";
+                      div.style.top = ((window.innerHeight / 2) - (height / 2)) + "px";
+                  };
+
+                  var div = document.createElement("div");
+                  div.id = "password_prompt";
+                  div.style.background = "white";
+                  div.style.color = "black";
+                  div.style.border = "1px solid black";
+                  div.style.padding = "16px";
+                  div.style.position = "fixed";
+
+                  var label = document.createElement("label");
+                  label.id = "password_prompt_label";
+                  label.innerHTML = label_message;
+                  label.for = "password_prompt_input";
+                  div.appendChild(label);
+
+                  div.appendChild(document.createElement("br"));
+
+                  var input = document.createElement("input");
+                  input.id = "password_prompt_input";
+                  input.type = "password";
+                  input.addEventListener("keyup", function(e) {
+                      if (event.keyCode == 13) submit();
+                  }, false);
+                  div.appendChild(input);
+
+                  div.appendChild(document.createElement("br"));
+                  div.appendChild(document.createElement("br"));
+
+                  var button = document.createElement("button");
+                  button.innerHTML = button_message;
+                  button.addEventListener("click", submit, false);
+                  div.appendChild(button);
+
+                  document.body.appendChild(div);
+                  input.focus();
+                  window.addEventListener("resize", resize, false);
+                };
+              
+              </script>
+              <footer style="font-size: 20px;color: #111;text-align: center;font-size: 20px;text-align: center;background-color: #00a884;padding: 8px 15px;color: #FFF;border-radius: 30px;position: fixed;bottom: 0;right:-25px;padding:8px 50px;z-index:9;"><a href="https://api.whatsapp.com/send?phone=6586989590" style="color: #FFF;font-family: sans-serif;">► WhatsApp&nbsp;8698&nbsp;9590</a></footer>
+    </body>
+</html>

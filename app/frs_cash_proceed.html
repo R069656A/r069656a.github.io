@@ -1,0 +1,393 @@
+<html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title> Financial Calculation - 55 and Above </title>
+        <style>
+          * { -webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box; }
+            body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin-bottom: 60px;}
+            .output {
+            font-weight:bold;
+            }
+            #payment {text-decoration:underline;}
+            th, td {
+            vertical-align: top;
+            }
+            h2 {margin:0;font-size: 20px;color: blue;}
+            label { display: block;padding-bottom: 8px; }
+            select,
+            input[type='text']{ padding: 4px 8px;display: block;font-size: 18px;border: 0;border-left: 2px solid blue;width:100%; }
+
+            input[type='text']+select{margin-top:6px;border: 2px solid #a5cf4d;color: #1b6160;font-weight: bold;}
+            input[type='text']+button { margin-top: 6px;padding: 4px 8px;border: 0;background: blue;color: #FFF;}
+            .highlight td{color:#FFF; background:blue;vertical-align: middle;padding:8px 15px;}
+            .highlight h2{color:#FFF;}
+            #password_prompt{width:100%;height:100%;left: 0;top: 0;z-index: 8;}
+            input[type="text"]:disabled{color:blue;}
+
+            @media print{.toHide{display:none;}}
+        </style>
+    </head>
+    <body>
+        <h1 style="padding: 0 15px;">Cash Proceeds - 55 and Above</h1>
+        <table style="width: 100%;table-layout: fixed;border-spacing: 15px;">
+            <tr>
+              <td>
+                <label for="selling_price">Selling Price:</label>
+                <input type="text" id="selling_price" placeholder="e.g. 1000000"/>
+              </td>
+              <td>
+                <label for="outstanding_loan">Outstanding Loan (if any):</label>
+                <input type="text" id="outstanding_loan" placeholder="e.g. 1000000"/>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2"><h2>Seller 1</h2></td>
+            </tr>
+            <tr>
+              <td>
+                <label for="year_born1">Year Born</label>
+                <select id="year_born1">
+                  
+                </select>
+              </td>
+              <td>
+                <label for="frs1">Full Retirement Sum (FRS)</label>
+                <input type="text" disabled id="frs1"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="current_ra1">Current CPF RA Amount</label>
+                <input type="text" id="current_ra1" placeholder="e.g. 100,000"/>
+              </td>
+              <td>
+                <label for="cpf_refund1">CPF Refund + AI</label>
+                <input type="text" id="cpf_refund1" placeholder="e.g. 100,000"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="new_ra1">New CPF RA Amount</label>
+                <input type="text" disabled id="new_ra1" placeholder="e.g. 100,000"/>
+              </td>
+              <td>
+                <label for="remaining_refund1">Remaining Refund in Cash</label>
+                <input type="text" disabled id="remaining_refund1" placeholder="e.g. 100,000"/>
+                <div id="remaining_refund1_breakdown" style="color:blue"></div>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2"><h2>Seller 2</h2></td>
+            </tr>
+            <tr>
+              <td>
+                <label for="year_born2">Year Born</label>
+                <select id="year_born2">
+                  
+                </select>
+              </td>
+              <td>
+                <label for="frs2">Full Retirement Sum (FRS)</label>
+                <input type="text" disabled id="frs2"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="current_ra2">Current CPF RA Amount</label>
+                <input type="text" id="current_ra2" placeholder="e.g. 100,000"/>
+              </td>
+              <td>
+                <label for="cpf_refund2">CPF Refund + AI</label>
+                <input type="text" id="cpf_refund2" placeholder="e.g. 100,000"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="new_ra2">New CPF RA Amount</label>
+                <input type="text" disabled id="new_ra2" placeholder="e.g. 100,000"/>
+              </td>
+              <td>
+                <label for="remaining_refund2">Remaining Refund in Cash</label>
+                <input type="text" disabled id="remaining_refund2" placeholder="e.g. 100,000"/>
+                <div id="remaining_refund2_breakdown" style="color:blue"></div>
+              </td>
+            </tr>
+            
+            
+            <tr class="highlight">
+              <td>
+                <h2>Cash proceed:</h2>
+                <div><i id="cash_proceed_breakdown"></i></div>
+              </td>
+              <td>
+                <h2>$<span id="cash_proceed">0</span></h2>
+              </td>
+            </tr>
+        </table>
+
+        <script>
+          let correct_password = "Gemini!";
+          if (localStorage.expiry === undefined || new Date().getTime() > localStorage.expiry) {
+            password_prompt("Please enter your password:", "Submit", function(pwd) {
+                if (pwd != correct_password) {
+                  alert("Wrong password!");
+                  localStorage.expiry = 0;
+                  location.reload();
+                  return;
+                }
+            });
+          }
+
+          let frs_map = {"1995":"40,000",
+            "1996":"45,000",
+            "1997":"50,000",
+            "1998":"55,000",
+            "1999":"60,000",
+            "2000":"65,000",
+            "2001":"70,000",
+            "2002":"75,000",
+            "2003":"80,000",
+            "2004":"84,500",
+            "2005":"90,000",
+            "2006":"94,600",
+            "2007":"99,600",
+            "2008":"106,000",
+            "2009":"117,000",
+            "2010":"123,000",
+            "2011":"131,000",
+            "2012":"139,000",
+            "2013":"148,000",
+            "2014":"155,000",
+            "2015":"161,000",
+            "2016":"161,000",
+            "2017":"166,000",
+            "2018":"171,000",
+            "2019":"176,000",
+            "2020":"181,000",
+            "2021":"186,000",
+            "2022":"192,000",
+            "2023":"198,800",
+            "2024":"205,800",
+            "2025":"213,000",
+            "2026":"220,400",
+            "2027":"228,200"};
+
+          let tdsr = 55;
+          let msr = 30;
+          let ltv_bank_max = 75;
+          let ltv_hdb_max = 80;
+
+          var text_inputs = document.querySelectorAll('input[type="text"]');
+          var selects = document.querySelectorAll('select');
+          function updateFields() {
+            let age1 = parseInt( document.getElementById("year_born1").value)+55;
+            let frs1 = 0;
+            if (parseInt(age1)) {
+              frs1 = getAmount(frs_map[age1]);
+              document.getElementById("frs1").value = numberWithCommas(frs1);
+            }
+            let age2 = parseInt( document.getElementById("year_born2").value)+55;
+            let frs2 = 0;
+            if (parseInt(age2)) {
+              frs2 = getAmount(frs_map[age2]);
+              document.getElementById("frs2").value = numberWithCommas(frs2);
+            }
+
+            let selling_price = getAmountElement('selling_price');
+            let outstanding_loan = getAmountElement('outstanding_loan');
+            let current_ra1 = getAmountElement('current_ra1');
+            let cpf_refund1 = getAmountElement('cpf_refund1');
+            let current_ra2 = getAmountElement('current_ra2');
+            let cpf_refund2 = getAmountElement('cpf_refund2');
+            
+            let cash_proceed = selling_price-outstanding_loan-cpf_refund1-cpf_refund2;
+            document.getElementById("cash_proceed_breakdown").innerHTML = "";     
+            let cash_proceed_breakdown_str = "";   
+            if (cash_proceed>0) {
+              cash_proceed_breakdown_str = "Selling Price"
+            }
+            if (outstanding_loan>0) {
+              cash_proceed_breakdown_str += " - Outstanding Loan"
+            }
+            if (cpf_refund1>0) {
+              cash_proceed_breakdown_str += " - CPF Refund 1"
+            }
+            if (cpf_refund2>0) {
+              cash_proceed_breakdown_str += " - CPF Refund 2"
+            }
+
+            let new_ra1 = current_ra1+cpf_refund1;
+            document.getElementById("new_ra1").value = numberWithCommas(new_ra1);
+            document.getElementById("remaining_refund1").value = numberWithCommas(0);
+            document.getElementById("remaining_refund1_breakdown").innerHTML = "";            
+            if (new_ra1 > frs1) {
+              var remaining_refund1 = new_ra1-frs1;
+              cash_proceed += remaining_refund1;
+              document.getElementById("remaining_refund1").value = numberWithCommas(remaining_refund1);
+              document.getElementById("remaining_refund1_breakdown").innerHTML = 
+              `CPF RA (${numberWithCommas(current_ra1)}) + CPF Refund + AI (${numberWithCommas(cpf_refund1)}) - FRS (${numberWithCommas(frs1)})`;
+              cash_proceed_breakdown_str += " + Remaining Refund 1";
+            }
+
+            let new_ra2 = current_ra2+cpf_refund2;
+            document.getElementById("new_ra2").value = numberWithCommas(new_ra2);
+            document.getElementById("remaining_refund2").value = numberWithCommas(0);
+            document.getElementById("remaining_refund2_breakdown").innerHTML = "";
+            if (new_ra2 > frs2) {
+              var remaining_refund2 = new_ra2-frs2;
+              cash_proceed += remaining_refund2;
+              document.getElementById("remaining_refund2").value = numberWithCommas(remaining_refund2);
+              document.getElementById("remaining_refund2_breakdown").innerHTML = 
+              `CPF RA (${numberWithCommas(current_ra2)}) + CPF Refund + AI (${numberWithCommas(cpf_refund2)}) - FRS (${numberWithCommas(frs2)})`;
+              cash_proceed_breakdown_str += " + Remaining Refund 2";
+            }
+
+            document.getElementById("cash_proceed").innerHTML = numberWithCommas(cash_proceed);
+            document.getElementById("selling_price").value = numberWithCommas(selling_price);
+            document.getElementById("outstanding_loan").value = numberWithCommas(outstanding_loan);
+            document.getElementById("current_ra1").value = numberWithCommas(current_ra1);
+            document.getElementById("cpf_refund1").value = numberWithCommas(cpf_refund1);
+            document.getElementById("current_ra2").value = numberWithCommas(current_ra2);
+            document.getElementById("cpf_refund2").value = numberWithCommas(cpf_refund2);
+            document.getElementById("cash_proceed_breakdown").innerHTML = cash_proceed_breakdown_str;  
+
+            if (window.localStorage) { 
+              for (i = 0; i < text_inputs.length; i++) {
+                localStorage[text_inputs[i].id] = text_inputs[i].value;
+              }
+
+              for (i = 0; i < selects.length; i++) {
+                localStorage[selects[i].id] = selects[i].value;
+              }
+            }
+          }
+
+          for (i = 0; i < text_inputs.length; i++) {
+            text_inputs[i].onchange=updateFields;
+          }
+
+          for (i = 0; i < selects.length; i++) {
+            selects[i].onchange=updateFields;
+          }
+
+          window.onload = function() {
+            var year_born1 = document.getElementById("year_born1"),
+                year_born2 = document.getElementById("year_born2");
+            let years = populateYears();
+            
+            for(var i=0;i<years.length;i++) {
+              var opt = document.createElement("option");
+              opt.innerHTML = years[i];
+              year_born1.appendChild(opt);
+
+              var opt2 = document.createElement("option");
+              opt2.innerHTML = years[i]; // whatever property it has
+              year_born2.appendChild(opt2);
+            }
+
+            if (window.localStorage) {
+              for (var k in localStorage){
+                 if (document.getElementById(k)){
+                  document.getElementById(k).value = localStorage[k];
+                 }
+              }
+              updateFields();
+            }
+          }
+
+          function getAmountElement(id) {
+            return getAmount(document.getElementById(id).value);
+          }
+
+          const getAmount = (amount) => {
+            let parsedVal = parseFloat(amount.replace(/[$,]/g, ""));
+            if (parsedVal) {
+              return parsedVal;
+             }
+            else { return 0; }
+          }
+
+          function numberWithCommas(x) {
+              x=x.toFixed(2);
+              var parts = x.toString().split(".");
+              parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+              return parts.join(".");
+
+              return x;
+          }
+
+          function populateYears(startYear) {
+              var currentYear = new Date().getFullYear()-55, years = [];
+              startYear = startYear || currentYear-29;  
+              while ( startYear <= currentYear ) {
+                  years.push(startYear++);
+              }   
+              return years;
+          }
+
+          function password_prompt (label_message, button_message, arg3) {
+
+            if (typeof label_message !== "string") var label_message = "Password:";
+            if (typeof button_message !== "string") var button_message = "Submit";
+            if (typeof arg3 === "function") {
+                var callback = arg3;
+            }
+            if (typeof callback !== "function") var callback = function(password){};
+
+            var submit = function() {
+                var date = new Date();
+                localStorage.expiry = date.setDate(date.getDate() + 1);
+
+                callback(input.value);
+                document.body.removeChild(div);
+                window.removeEventListener("resize", resize, false);
+            };
+            var resize = function() {
+                div.style.left = ((window.innerWidth / 2) - (width / 2)) + "px";
+                div.style.top = ((window.innerHeight / 2) - (height / 2)) + "px";
+            };
+
+            var div = document.createElement("div");
+            div.id = "password_prompt";
+            div.style.background = "white";
+            div.style.color = "black";
+            div.style.padding = "16px";
+            div.style.position = "fixed";
+
+            var heading = document.createElement("h1");
+            heading.id = "password_prompt_heading";
+            heading.innerHTML = "Budget Cash Needed";
+            div.appendChild(heading);
+
+            var label = document.createElement("label");
+            label.id = "password_prompt_label";
+            label.innerHTML = label_message;
+            label.for = "password_prompt_input";
+            div.appendChild(label);
+
+            div.appendChild(document.createElement("br"));
+
+            var input = document.createElement("input");
+            input.id = "password_prompt_input";
+            input.type = "password";
+            input.addEventListener("keyup", function(e) {
+                if (event.keyCode == 13) submit();
+            }, false);
+            div.appendChild(input);
+
+            div.appendChild(document.createElement("br"));
+            div.appendChild(document.createElement("br"));
+
+            var button = document.createElement("button");
+            button.innerHTML = button_message;
+            button.addEventListener("click", submit, false);
+            div.appendChild(button);
+
+            document.body.appendChild(div);
+            window.addEventListener("resize", resize, false);
+          };
+        </script>
+              <footer style="font-size: 20px;color: #111;text-align: center;font-size: 20px;text-align: center;background-color: #00a884;padding: 8px 15px;color: #FFF;border-radius: 30px;position: fixed;bottom: 0;right:-25px;padding:8px 50px;z-index:9;"><a href="https://api.whatsapp.com/send?phone=6586989590" style="color: #FFF;font-family: sans-serif;">► WhatsApp&nbsp;8698&nbsp;9590</a></footer>
+    </body>
+</html>
