@@ -70,13 +70,16 @@
 
               <script>
                 let correct_password = "Gemini!"
-                password_prompt("Please enter your password:", "Submit", function(pwd) {
-                    if (pwd != correct_password) {
-                      alert("Wrong password!")
-                      location.reload();
-                      return;
-                    }
-                });
+                if (localStorage.expiry === undefined || new Date().getTime() > localStorage.expiry) {
+                  password_prompt("Please enter your password:", "Submit", function(pwd) {
+                      if (pwd != correct_password) {
+                        alert("Wrong password!");
+                        localStorage.expiry = 0;
+                        location.reload();
+                        return;
+                      }
+                  });
+                }
 
                 let tdsr = 55;
                 let msr = 30;
@@ -174,6 +177,9 @@
                   if (typeof callback !== "function") var callback = function(password){};
 
                   var submit = function() {
+                      var date = new Date();
+                      localStorage.expiry = date.setDate(date.getDate() + 1);
+
                       callback(input.value);
                       document.body.removeChild(div);
                       window.removeEventListener("resize", resize, false);
