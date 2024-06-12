@@ -223,12 +223,15 @@
             document.getElementById("remaining_refund1_breakdown").innerHTML = "";            
             if (new_ra1 > frs1) {
               var remaining_refund1 = new_ra1-frs1;
+              if (current_ra1 > new_ra1){
+                remaining_refund1 -= current_ra1-new_ra1;
+              }
               cash_proceed += remaining_refund1;
               document.getElementById("remaining_refund1").value = numberWithCommas(remaining_refund1);
               document.getElementById("remaining_refund1_breakdown").innerHTML = 
               `CPF RA (${numberWithCommas(current_ra1)}) + CPF Refund + AI (${numberWithCommas(cpf_refund1)}) - FRS (${numberWithCommas(frs1)})`;
               cash_proceed_breakdown_str += " + Remaining Refund 1";
-              document.getElementById("new_ra1").value = numberWithCommas(frs1);
+              // document.getElementById("new_ra1").value = numberWithCommas(frs1);
             }
 
             let new_ra2 = current_ra2+cpf_refund2;
@@ -238,11 +241,14 @@
             if (new_ra2 > frs2) {
               var remaining_refund2 = new_ra2-frs2;
               cash_proceed += remaining_refund2;
+              if (current_ra2 > new_ra2){
+                remaining_refund2 -= current_ra2-new_ra2;
+              }
               document.getElementById("remaining_refund2").value = numberWithCommas(remaining_refund2);
               document.getElementById("remaining_refund2_breakdown").innerHTML = 
               `CPF RA (${numberWithCommas(current_ra2)}) + CPF Refund + AI (${numberWithCommas(cpf_refund2)}) - FRS (${numberWithCommas(frs2)})`;
               cash_proceed_breakdown_str += " + Remaining Refund 2";
-              document.getElementById("new_ra2").value = numberWithCommas(frs2);
+              // document.getElementById("new_ra2").value = numberWithCommas(frs2);
             }
 
             document.getElementById("cash_proceed").innerHTML = numberWithCommas(cash_proceed);
