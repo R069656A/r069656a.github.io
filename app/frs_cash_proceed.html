@@ -224,7 +224,7 @@
             if (new_ra1 > frs1) {
               var remaining_refund1 = new_ra1-frs1;
               if (current_ra1 > new_ra1){
-                remaining_refund1 -= current_ra1-new_ra1;
+                remaining_refund1 -= (current_ra1-new_ra1);
               }
               cash_proceed += remaining_refund1;
               document.getElementById("remaining_refund1").value = numberWithCommas(remaining_refund1);
@@ -242,7 +242,7 @@
               var remaining_refund2 = new_ra2-frs2;
               cash_proceed += remaining_refund2;
               if (current_ra2 > new_ra2){
-                remaining_refund2 -= current_ra2-new_ra2;
+                remaining_refund2 -= (current_ra2-new_ra2);
               }
               document.getElementById("remaining_refund2").value = numberWithCommas(remaining_refund2);
               document.getElementById("remaining_refund2_breakdown").innerHTML = 
