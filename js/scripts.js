@@ -310,7 +310,7 @@ function checkPosition()
     pageSection.each(function(indx){
         
         if ($(this).attr("data-background")){
-            $(this).css("background-image", "url(" + $("data-bg-mobile").data("background") + ")");
+            $(this).css("background-image", "url(" + $(this).data("background") + ")");
         }
     });
     } else {
