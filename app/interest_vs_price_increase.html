@@ -1,0 +1,403 @@
+<html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title> Interest Rates vs Price Increase - WeeKheong Calculator </title>
+        <style>
+          * { -webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box; }
+            body{font-family:Tahoma;}
+            .output {
+            font-weight:bold;
+            }
+            th, td {vertical-align: top;}
+            #password_prompt{width:100%;height:100%;left: 0;top: 0;z-index: 8;}
+            .report_table {width:100%;}
+            .stylish_table2,
+            .report_table,.stylish_table { border-collapse: collapse; }
+            .report_table td,th {padding:4px;border:1px solid #333;font-size: 16px;}
+            .report_table tbody tr:nth-child(odd) td {background-color:#c4c4e7;}
+            .report_table tbody tr:nth-child(even) td {background-color:#e7c4e5;}
+            .stylish_table2,.stylish_table {border:1px solid #333;width:100%;}
+            .stylish_table td { padding:8px; }
+            .stylish_table tr:nth-child(odd) td:first-child { background-color:#2155cc;color:#FFF; }
+            .stylish_table td:first-child { background-color:#3266cc;color:#FFF; }
+            .stylish_table tr:nth-child(odd) td:last-child { background-color:#ccc; }
+            .stylish_table tr.positive_r td { background-color:#2e8f60;color:#FFF; }
+            .stylish_table tr.negative_r td { background-color:#bc848e; }
+            .stylish_table2 tr:nth-child(1) td {background-color:#333;color:#FFF;}
+            .stylish_table2 td:first-child{background-color:#753c81;color:#FFF;}
+            .stylish_table2 tr:nth-child(even) td:first-child{background-color:#813c3c;}
+            .stylish_table2 tr:nth-child(even) td:last-child{background-color:#ccc;}
+            .stylish_table2 td { padding:2px;font-size: 16px; }
+            select,input[type="text"]{font-size:16px;background:none;border:0;width:100%;}
+            .container_table > tbody > tr > td { padding:8px; }
+            @media print{.toHide{display:none;}}
+        </style>
+        <script>
+            function saveInputs() {
+                var text_inputs = document.querySelectorAll('input[type="text"]');
+                var selects = document.querySelectorAll('select');
+                if (window.localStorage) { 
+                    for (i = 0; i < text_inputs.length; i++) {
+                        localStorage[text_inputs[i].id] = text_inputs[i].value;
+                    }
+
+                    for (i = 0; i < selects.length; i++) {
+                        localStorage[selects[i].id] = selects[i].value;
+                    }
+                }
+            }
+
+            function updateGrowth ( ) {
+                var purchase = getAmount(document.getElementById("purchase").value);
+                var growthPercent = getAmount(document.getElementById("growth").value);
+                document.getElementById("purchase2").value = numberWithCommas(growthPercent/100*purchase + purchase);
+                var purchase2 = getAmount(document.getElementById("purchase2").value);
+                document.getElementById("principal").value = numberWithCommas(purchase*0.75);
+                document.getElementById("principal2").value = numberWithCommas(purchase2*0.75);
+                document.getElementById("purchase").value = numberWithCommas(purchase);
+                saveInputs();
+            }
+
+            function getValues() {
+                //button click gets values from inputs
+                var purchase = getAmount(document.getElementById("purchase").value);
+                var balance = getAmount(document.getElementById("principal").value);
+                var interestRate = getAmount(document.getElementById("interest").value)/100.0;
+                var terms = getAmount(document.getElementById("terms").value) * 12;
+
+                var purchase2 = getAmount(document.getElementById("purchase2").value);
+                var balance2 = getAmount(document.getElementById("principal2").value);
+                var interestRate2 = getAmount(document.getElementById("interest2").value)/100.0;
+                var terms2 = getAmount(document.getElementById("terms2").value) * 12;
+
+                var holding = getAmount(document.getElementById("holding").value);
+                
+                //set the div string
+                var div = document.getElementById("Result");
+                
+                //in case of a re-calc, clear out the div!
+                div.innerHTML = "";
+                
+                //validate inputs - display error if invalid, otherwise, display table
+                var balVal = validateInputs(balance);
+                var intrVal = validateInputs(interestRate);
+
+                if (balVal && intrVal) {
+                    //Returns div string if inputs are valid
+                    div.innerHTML += amort(balance, interestRate, terms, holding);
+                }
+                else {
+                    //returns error if inputs are invalid
+                    div.innerHTML += "Please Check your inputs and retry - invalid values.";
+                }
+                
+                //set the div string
+                var div2 = document.getElementById("Result2");
+                
+                //in case of a re-calc, clear out the div!
+                div2.innerHTML = "";
+                
+                var balVal2 = validateInputs(balance2);
+                var intrVal2 = validateInputs(interestRate2);
+
+                if (balVal2 && intrVal2) {
+                    div2.innerHTML += amort(balance2, interestRate2, terms2, holding);
+                }
+
+                const total_interests = document.getElementsByClassName("total_interest");
+                let additional_interest = numberWithCommas( getAmount( total_interests[0].innerHTML)-getAmount(total_interests[1].innerHTML));
+                let price_difference = numberWithCommas(purchase2-purchase);
+                
+                let amount_saved = ( getAmount( price_difference)-getAmount( additional_interest));
+
+                var summary = document.getElementById("summary");
+                summary_html = "<table class=\"stylish_table\">";
+                summary_html += 
+                    `<tr><td>Holding Period:</td><td>${holding} months</td>
+                    </tr><tr><td>Additional Interest: </td><td><b>$${additional_interest}</b></td></tr>
+                    <tr><td>Price Difference: </td><td><b>$${price_difference}</b></td></tr>
+                    <tr class="${(amount_saved>0) ?"positive_r":"negative_r" }"><td><b>Amount saved:</b></td><td><b>$${numberWithCommas( amount_saved)}</b></td></td>
+                    `;
+                summary_html += "</table><br/>Disclaimer: Report for illustration purposes only. Actual figures will vary.";
+                summary.innerHTML = summary_html;
+                
+                saveInputs();
+            }
+
+            /**
+             * Amort function:
+             * Calculates the necessary elements of the loan using the supplied user input
+             * and then displays each months updated amortization schedule on the page
+            */
+            function amort(balance, interestRate, terms, holding=18) {
+                //Calculate the per month interest rate
+                var monthlyRate = interestRate/12;
+                
+                //Calculate the payment
+                var payment = balance * (monthlyRate/(1-Math.pow(
+                    1+monthlyRate, -terms)));
+                    
+                //begin building the return string for the display of the amort table
+                var result = "<table class=\"stylish_table\">" +
+                    "<tr><td>Loan amount:</td><td> $" + numberWithCommas(balance) +  "</td></tr>" + 
+                    "<tr><td>Interest rate:</td><td> " + (interestRate*100).toFixed(2) +  "%</td></tr>" +
+                    "<tr><td>Number of months:</td><td> " + terms + "</td></tr>" +
+                    "<tr><td>Monthly payment:</td><td> $" + numberWithCommas(payment) + "</td></tr>" +
+                    "<tr><td>Total paid:</td><td> $" + numberWithCommas(payment * terms) + "</td></tr>"+
+                    "<tr><td>Total interest:</td><td> $<span class=\"total_interest\">" + numberWithCommas(payment * holding) + "</span></td></tr>"+
+                    "</table><br/>";
+                    
+                //add header row for table to return string
+                result += "<table class=\"report_table\"><thead><tr><th>Month #</th><th>Balance</th>" + 
+                    "<th>Interest</th><th>Principal</th></tr></thead>";
+                
+                /**
+                 * Loop that calculates the monthly Loan amortization amounts then adds 
+                 * them to the return string 
+                 */
+                for (var count = 0; count < terms; ++count) { 
+                    //in-loop interest amount holder
+                    var interest = 0;
+                    
+                    //in-loop monthly principal amount holder
+                    var monthlyPrincipal = 0;
+                    
+                    //start a new table row on each loop iteration
+                    result += "<tr align=center>";
+                    
+                    //display the month number in col 1 using the loop count variable
+                    result += "<td>" + (count + 1) + "</td>";
+                    
+                    
+                    //code for displaying in loop balance
+                    result += "<td> $" + numberWithCommas( balance) + "</td>";
+                    
+                    //calc the in-loop interest amount and display
+                    interest = balance * monthlyRate;
+                    result += "<td> $" + numberWithCommas(interest) + "</td>";
+                    
+                    //calc the in-loop monthly principal and display
+                    monthlyPrincipal = payment - interest;
+                    result += "<td> $" + numberWithCommas(monthlyPrincipal) + "</td>";
+                    
+                    //end the table row on each iteration of the loop	
+                    result += "</tr>";
+                    
+                    //update the balance for each loop iteration
+                    balance = balance - monthlyPrincipal;		
+                }
+                
+                //Final piece added to return string before returning it - closes the table
+                result += "</table>";
+                
+                //returns the concatenated string to the page
+                return result;
+            }
+
+            function getAmountElement(id) {
+                return getAmount(document.getElementById(id).value);
+            }
+
+            const getAmount = (amount) => {
+                let parsedVal = parseFloat(amount.replace(/[$,]/g, ""));
+                if (parsedVal) {
+                return parsedVal;
+                }
+                else { return 0; }
+            }
+
+            function numberWithCommas(x) {
+                x=x.toFixed(2);
+                var parts = x.toString().split(".");
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                return parts.join(".");
+
+                return x;
+            }
+
+            function validateInputs(value) {
+                //some code here to validate inputs
+                if ((value == null) || (value == "")) {
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+            function password_prompt (label_message, button_message, arg3) {
+
+                if (typeof label_message !== "string") var label_message = "Password:";
+                if (typeof button_message !== "string") var button_message = "Submit";
+                if (typeof arg3 === "function") {
+                    var callback = arg3;
+                }
+                if (typeof callback !== "function") var callback = function(password){};
+
+                var submit = function() {
+                    var date = new Date();
+                    localStorage.expiry = date.setDate(date.getDate() + 1);
+
+                    callback(input.value);
+                    document.body.removeChild(div);
+                    window.removeEventListener("resize", resize, false);
+                };
+                var resize = function() {
+                    div.style.left = ((window.innerWidth / 2) - (width / 2)) + "px";
+                    div.style.top = ((window.innerHeight / 2) - (height / 2)) + "px";
+                };
+
+                var div = document.createElement("div");
+                div.id = "password_prompt";
+                div.style.background = "white";
+                div.style.color = "black";
+                div.style.padding = "16px";
+                div.style.position = "fixed";
+
+                var heading = document.createElement("h1");
+                heading.id = "password_prompt_heading";
+                heading.innerHTML = "Interest Rate vs Price Increase";
+                div.appendChild(heading);
+
+                var label = document.createElement("label");
+                label.id = "password_prompt_label";
+                label.innerHTML = label_message;
+                label.for = "password_prompt_input";
+                div.appendChild(label);
+
+                div.appendChild(document.createElement("br"));
+
+                var input = document.createElement("input");
+                input.id = "password_prompt_input";
+                input.type = "password";
+                input.addEventListener("keyup", function(e) {
+                    if (event.keyCode == 13) submit();
+                }, false);
+                div.appendChild(input);
+
+                div.appendChild(document.createElement("br"));
+                div.appendChild(document.createElement("br"));
+
+                var button = document.createElement("button");
+                button.innerHTML = button_message;
+                button.addEventListener("click", submit, false);
+                div.appendChild(button);
+
+                document.body.appendChild(div);
+                window.addEventListener("resize", resize, false);
+            };
+
+        </script>
+    </head>
+    <body>
+        <fieldset>
+            <legend>Interest Rates vs Price Increase</legend>
+            <table class="container_table" style="width:100%;table-layout: fixed;border-collapse: collapse;">
+                <tr>
+                    <td>
+                        <table class="stylish_table2">
+                            <tr>
+                                <td colspan="3" style="text-align:center"><b><u>Today</u></b></td>
+                            </tr>
+                            <tr>
+                                <td><label for="purchase"><b>Purchase Price:</b></label></td>
+                                <td><input type="text" id="purchase" onchange="updateGrowth()"/></td>
+                            </tr>
+                            <tr>
+                                <td><label for="principal"><b>Loan Amount (75%):</b></label></td>
+                                <td><input type="text" id="principal" readonly /></td>
+                            </tr>
+                            <tr>
+                                <td><label for="interest"><b>Current Interest (%):</b></label></td>
+                                <td><input type="text" id="interest" /></td>
+                            </tr>
+                            <tr>
+                                <td><label for="terms"><b>Loan Tenure (Years):</b></label></td>
+                                <td><input type="text" id="terms" /></td>
+                            </tr>
+                            <tr>
+                                <td><label for="holding"><b>Holding Period (Months):</b></label></td>
+                                <td><input type="text" id="holding" /></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td>
+                        <table class="stylish_table2">
+                            <tr>
+                                <td style="text-align: right;"><b><u>Growth: </u></b></td>
+                                <td>
+                                    <select style="color: #FFF;font-weight: bold;text-decoration: underline;text-shadow: none;" id="growth" onchange="updateGrowth()">
+                                        <option value="3">3%</option>
+                                        <option value="5">5%</option>
+                                        <option value="7">7%</option>
+                                        <option value="10">10%</option>
+                                        <option value="12">12%</option>
+                                        <option value="15">15%</option>
+                                        <option value="18">18%</option>
+                                        <option value="20">20%</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><label for="purchase2"><b>Purchase Price:</b></label></td>
+                                <td><input type="text" id="purchase2" readonly /></td>
+                            </tr>
+                            <tr>
+                                <td><label for="principal2"><b>Loan Amount (75%):</b></label></td>
+                                <td><input type="text" id="principal2" readonly /></td>
+                            </tr>
+                            <tr>
+                                <td><label for="interest2"><b>Ideal Interest (%):</b></label></td>
+                                <td><input type="text" id="interest2" /></td>
+                            </tr>
+                            <tr>
+                                <td><label for="terms2"><b>Loan Tenure (Years):</b></label></td>
+                                <td><input type="text" id="terms2" /></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td>
+
+                    </td>
+                </tr>
+            </table>
+            <input type="button" value="Calculate" class="toHide" style="margin-top: 20px;font-size: 16px;background: #0a4545;color: #FFF;border: 0;padding: 10px;" onclick="getValues()" />
+        </fieldset>
+        
+        <fieldset>
+            <legend>Outputs</legend>
+            <table class="container_table" style="width:100%;table-layout: fixed;border-collapse: collapse;">
+                <tr>
+                    <td><div id="Result"></div></td>
+                    <td><div id="Result2"></div></td>
+                    <td><div id="summary"></div></td>
+                </tr>
+            </table>
+        </fieldset>	
+        <script>
+            let correct_password = "Gemini!";
+            if (localStorage.expiry === undefined || new Date().getTime() > localStorage.expiry) {
+              password_prompt("Please enter your password:", "Submit", function(pwd) {
+                  if (pwd != correct_password) {
+                    alert("Wrong password!");
+                    localStorage.expiry = 0;
+                    location.reload();
+                    return;
+                  }
+              });
+            }
+
+            window.onload = function() {
+                if (window.localStorage) {
+                    for (var k in localStorage){
+                        if (document.getElementById(k)){
+                        document.getElementById(k).value = localStorage[k];
+                        }
+                    }
+                    updateGrowth();
+                    getValues();
+                }
+            }
+        </script>
+    </body>
+</html>
