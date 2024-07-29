@@ -1,0 +1,663 @@
+<html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title> WeeKheong Timeline Manager </title>
+        <style>
+          * { -webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box; }
+            body{font-family:sans-serif;}
+            .output {
+            font-weight:bold;
+            }
+            #payment {
+            text-decoration:underline;
+            }
+            #graph {
+            border:solid black 1px;
+            }
+            th, td {
+            vertical-align: middle;
+            }
+            body,table,select,input{font-size: 14px;}
+            #password_prompt{width:100%;height:100%;left: 0;top: 0;z-index: 13;}
+            .timeline_event {float:left;height:16px;position: relative;}
+            .timeline_event > .timeline_event{padding:8px;}
+            .otp_event {background:#fbc001;}
+            .resale_event {background:#ed7d31;margin-top:32px;}
+            .completion_event {background:#70ad47;margin-top:64px;}
+            .teos_event{background:#4472c4;margin-top:96px;}
+            .milestone_event { position: relative;}
+            .milestone_event:after { content:'';width: 0; height: 0; border-top: 8px solid transparent;border-bottom: 8px solid transparent;border-left: 8px solid green;position: absolute;top: 0;right: -8px; }
+            .otp_event.milestone_event:after { border-left-color: #fbc001; }
+            .resale_event.milestone_event:after { border-left-color: #ed7d31; }
+            .completion_event.milestone_event:after { border-left-color: #70ad47; }
+            .teos_event.milestone_event:after {border-left-color:#4472c4}
+            .teos_event>span{color:#FFF;}
+          
+            .timeline_wrapper{position: relative;}
+
+            label {display: block;padding-bottom: 8px;}
+            input[type='date'], input[type='text'], input[type='number'] {padding: 4px 8px;display: block;font-size: 18px;border: 0;border-left: 2px solid blue;width: 100%;}
+
+            #timeline_wrapper { padding: 0 80px 0 30px;overflow: hidden; }
+            #timeline_wrapper > table {border-collapse: collapse;}
+            #timeline_wrapper > table tr > td:first-child { padding:8px; text-align: center;color:#FFF; }
+            #timeline_wrapper > table tr:nth-child(2) > td:first-child { background-color: #7a6da6; }
+            #timeline_wrapper > table tr:nth-child(3) > td:first-child { background-color: #345c7a; }
+            #timeline_wrapper > table tr:nth-child(4) > td:first-child { background-color: #68a59f; }
+            #timeline_wrapper > table tr:nth-child(5) > td:first-child { background-color: #66343e; }
+            #timeline_wrapper > table tr:nth-child(6) > td:first-child { background-color: #454552; }
+            #timeline_wrapper > table tr:nth-child(odd):not(:first-child) > td:nth-child(2) { background-color: #fdf4dd;}
+            #timeline_wrapper > table tr:nth-child(even) > td:nth-child(2) { background-color: #f9e8de;}
+
+            #dates_axis { display: table;table-layout: fixed;width: 100%;height:32px;    border-collapse: collapse; }
+            .date_event{display: table-cell;position: relative;z-index: 10;height:96px;}
+            .date_event>div:after { content:'';position: absolute;left: 50%;-webkit-transform: translateX(-50%);-moz-transform: translateX(-50%);transform: translateX(-50%);border-right: 1px #333 dotted;height: 450px;top:100%; }
+            .date_event > div { position: absolute;/*left: 50%;top: 50%;-webkit-transform: translateY(-50%) translateX(-50%);-moz-transform: translateY(-50%) translateX(-50%);transform: translateY(-50%) translateX(-50%);*/left:-43px;background-color: #66343e;z-index: 11;    padding: 8px;border-radius: 50px;color:#FFF; }
+            .date_event:nth-child(-n+4) > div {background-color: #fbc001;color:#333;}
+            .date_event:nth-child(5) > div,
+            .date_event:nth-child(6) > div {background-color: #ed7d31;color:#333;}
+            .date_event:nth-child(7) > div,
+            .date_event:nth-child(8) > div {background-color: #70ad47;color:#333;}
+            .date_event:nth-child(9) > div,
+            .date_event:nth-child(10) > div {background-color: #4472c4;}
+            .date_event:nth-child(odd) > div {margin-top:34px}
+            .date_event:nth-child(even) > div {margin-top:0px;}
+            .date_event:nth-child(3n)> div {margin-top:64px;}
+
+            .timeline_wrapper { height:32px; }
+            .otp_event > div:first-child { position:absolute;left:0;width:0; }
+            .otp_event > div:first-child > div {position:absolute;right:8px;white-space: nowrap;z-index:11;background-color: #FFF;}
+            .teos_event > div,
+            .completion_event > div,
+            .resale_event > div,
+            .otp_event > div:last-child { position:absolute;right:0;width:0;top:0; }
+            .teos_event > div > div,
+            .completion_event > div > div,
+            .resale_event > div > div,
+            .otp_event > div:last-child > div { position: absolute;/*left: 50%;-webkit-transform: translateX(-50%);-moz-transform: translateX(-50%);transform: translateX(-50%);*/white-space: nowrap;left:8px;background:#FFF;z-index: 11; }
+
+            #sell_apart,
+            #completion_apart,
+            #submission_apart { background-color:blue;text-align: center;color:#FFF; }
+
+            @media only screen and (max-width: 720px) {
+              .main_title { width: auto!important; }
+              input {width:100px;}
+              .toHide{display: none;}
+            }
+            @media print{.toHide{display:none;}}
+        </style>
+    </head>
+    <body>
+
+      <div id="timeline_wrapper">
+        <table style="width:100%;">
+          <tr>
+            <td style="white-space: nowrap;"><span style="visibility: hidden;">Transactions Timeline</span></td>
+            <td>
+              <div id="dates_axis">
+                <div class="date_event"></div>
+                <div class="date_event"></div>
+                <div class="date_event"></div>
+                <div class="date_event"></div>
+                <div class="date_event"></div>
+                <div class="date_event"></div>
+                <div class="date_event"></div>
+                <div class="date_event"></div>
+                <div class="date_event"></div>
+                <div class="date_event"></div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>Sell</td>
+            <td>
+              <div class="timeline_wrapper buy_timeline">
+                
+                <div class="timeline_event otp_event milestone_event" id="sell_otp_period">
+                  <div><div class="">Issue OTP</div></div>
+                  <span id="sell_otp_label">21d</span>
+                  <div><div class="">Receive Exercise Fee</div></div>
+                </div>
+                
+                <div class="timeline_event resale_event milestone_event" id="sell_hdb_period">
+                  <span id="sell_delay_label">21d</span>
+                  <div><div class="">HDB Submission</div></div>
+                </div>
+                
+                <div class="timeline_event completion_event milestone_event" id="sell_completion_period">
+                  <span>12 weeks</span>
+                  <div><div class="">Completion</div></div>
+                </div>
+                
+                <div class="timeline_event teos_event milestone_event" id="sell_teos_period">
+                  <span id="sell_teos_label">3 months</span>
+                  <div><div class=""> Extension </div></div>
+                </div>
+
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>Buy</td>
+            <td>
+              <div class="timeline_wrapper buy_timeline">
+                
+                <div class="timeline_event otp_event milestone_event" id="buy_otp_period">
+                  <div class=""><div>Pay Option Fee</div></div>
+                  <span id="buy_otp_label">21d</span>
+                  <div class=""><div>Pay Exercise Fee</div></div>
+                </div>
+                
+                <div class="timeline_event resale_event milestone_event" id="buy_hdb_period">
+                  <span id="buy_delay_label">21d</span>
+                  <div class=""><div>HDB Submission</div></div>
+                </div>
+                
+                <div class="timeline_event completion_event milestone_event" id="buy_completion_period">
+                  <span>12 weeks</span>
+                  <div class=""><div>Completion</div></div>
+                </div>
+                
+                <div class="timeline_event teos_event milestone_event" id="buy_teos_period">
+                  <span id="buy_teos_label">3 months</span>
+                  <div class=""><div> Extension</div></div>
+                </div>
+
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>HDB Submission</td>
+            <td>
+              <div id="submission_apart" class="timeline_event"></div>
+            </td>
+          </tr>
+          <tr>
+            <td>Key Collection</td>
+            <td>
+              <div id="completion_apart" class="timeline_event"></div>
+            </td>
+          </tr>
+          <tr>
+            <td><span id="sellbuyLabel">Days to Sell</span></td>
+            <td>
+              <div id="sell_apart" class="timeline_event"></div>
+            </td>
+          </tr>
+        </table>
+      </div>
+      
+      <br/>
+      <br/>
+
+      <table>
+        <tr><td colspan="7"><h2 style="margin-top:20px;margin-bottom:10px;">Sell</h2></td></tr>
+        <tr>
+          <td>
+            <label for="sell_otp">Issue OTP</label>
+            <input type="date" placeholder="" id="sell_otp"/>
+          </td>
+          <td>
+            <label for="sell_exercise">Exercise Date</label>
+            <input type="date" id="sell_exercise"/>
+          </td>
+          <td>
+            <label for="sell_delay_submission">Delay Submission (days)</label>
+            <input type="number" placeholder="Up to 120d" id="sell_delay_submission"/>
+          </td>
+          <td>
+            <label for="sell_hdb_submission">HDB Submission</label>
+            <input type="date" placeholder="" id="sell_hdb_submission"/>
+          </td>
+          <td>
+            <label for="sell_completion">Completion</label>
+            <input type="date" readonly placeholder="" id="sell_completion"/>
+          </td>
+          <td>
+            <label for="sell_teos">Temporary Extension of Stay (months)</label>
+            <input type="number" placeholder="Up to 3 months" id="sell_teos"/>
+          </td>
+          <td>
+            <label for="sell_extension">Extension of Stay</label>
+            <input type="date" readonly placeholder="" id="sell_extension"/>
+          </td>
+        </tr>
+        <tr><td colspan="7"><h2 style="margin-top:20px;margin-bottom:10px;">Buy</h2></td></tr>
+        <tr>
+          <td>
+            <label for="buy_otp">Pay Option Fee</label>
+            <input type="date" placeholder="" id="buy_otp"/>
+          </td>
+          <td>
+            <label for="buy_exercise">Exercise Date</label>
+            <input type="date" id="buy_exercise"/>
+          </td>
+          <td>
+            <label for="buy_delay_submission">Delay Submission (days)</label>
+            <input type="number" placeholder="Up to 120d" id="buy_delay_submission"/>
+          </td>
+          <td>
+            <label for="buy_hdb_submission">HDB Submission</label>
+            <input type="date" placeholder="" id="buy_hdb_submission"/>
+          </td>
+          <td>
+            <label for="buy_completion">Completion</label>
+            <input type="date" readonly placeholder="" id="buy_completion"/>
+          </td>
+          <td>
+            <label for="buy_teos">Temporary Extension of Stay (months)</label>
+            <input type="number" placeholder="Up to 3 months" id="buy_teos"/>
+          </td>
+          <td>
+            <label for="buy_extension">Extension of Stay</label>
+            <input type="date" readonly placeholder="" id="buy_extension"/>
+          </td>
+        </tr>
+        <tr><td colspan="7"><hr/></td></tr>
+        <tr>
+          <td colspan="7"><button onclick="tWeeksApart()" style="float:left;">3 weeks apart (sell first)</button><button onclick="tWeeksApart_buy()" style="float:left;">3 weeks apart (buy first)</button><button style="float:left;">Contra</button></td>
+        </tr>
+      </table>
+
+      <script>
+        let correct_password = "Gemini!"
+        if (localStorage.expiry === undefined || new Date().getTime() > localStorage.expiry) {
+          password_prompt("Please enter your password:", "Submit", function(pwd) {
+              if (pwd != correct_password) {
+                alert("Wrong password!");
+                localStorage.expiry = 0;
+                location.reload();
+                return;
+              }
+          });
+        }
+
+        // elements
+        var inputs = document.querySelectorAll('input');
+        var date_inputs = document.querySelectorAll('input[type="date"]');
+        var date_events = document.querySelectorAll('.date_event');
+
+        // main func
+        function tWeeksApart_buy(){ // buy first
+          var d = new Date(document.getElementById("buy_hdb_submission").value);
+          d = d.subDays(21);
+          document.getElementById("sell_hdb_submission").value = formatDate(d);
+
+          var delay_sub = parseInt(document.getElementById("sell_delay_submission").value);
+          d = d.subDays(delay_sub);
+          document.getElementById("sell_exercise").value = formatDate(d);
+          document.getElementById("sell_otp").value = formatDate(d.subDays(21));
+
+          document.getElementById("sell_delay_submission").dispatchEvent(new Event('change'));
+          document.getElementById("sell_teos").dispatchEvent(new Event('change'));
+          document.getElementById("buy_teos").dispatchEvent(new Event('change'));
+          // updateFields();
+        }
+
+        function tWeeksApart(){ // sell first
+          var d = new Date(document.getElementById("sell_hdb_submission").value);
+          d = d.addDays(21);
+          document.getElementById("buy_hdb_submission").value = formatDate(d);
+
+          var delay_sub = parseInt(document.getElementById("buy_delay_submission").value);
+          d = d.subDays(delay_sub);
+          document.getElementById("buy_exercise").value = formatDate(d);
+          document.getElementById("buy_otp").value = formatDate(d.subDays(21));
+
+          document.getElementById("buy_delay_submission").dispatchEvent(new Event('change'));
+          document.getElementById("sell_teos").dispatchEvent(new Event('change'));
+          document.getElementById("buy_teos").dispatchEvent(new Event('change'));
+          // updateFields();
+        }
+
+        function extensionPeriod(id1,id2) {
+          if (parseInt(this.value) <= 0 || parseInt(this.value) > 3) {
+            this.value =0;
+            document.getElementById(id2).value = '';
+            return;
+          }
+           // number of months 
+          var date1 = new Date(document.getElementById(id1).value);
+          document.getElementById(id2).value = formatDate(new Date(date1.setMonth(date1.getMonth() + parseInt(this.value))));
+        }
+
+        function completionPeriod(id2, id1, delayPeriod) {
+          var date1 = new Date(this.value); // hdb submission
+
+          let Difference_In_Time = new Date(this.value) - new Date(document.getElementById(id1).value) ;
+          let Difference_In_Days = Math.round(Difference_In_Time / (1000 * 3600 * 24));
+          document.getElementById(delayPeriod).value = Difference_In_Days;
+
+          date1 = date1.addDays(84);
+          document.getElementById(id2).value = formatDate(date1);
+        }
+
+        function delaySubmission(id1,id2){
+          if (document.getElementById(id1).value) {
+            var date1 = new Date(document.getElementById(id1).value);
+            date1 = date1.addDays(parseInt( this.value));
+            document.getElementById(id2).value = formatDate(date1);
+            document.getElementById(id2).dispatchEvent(new Event('change'));
+          }
+        }
+
+        function exercisePeriod(id2){
+          var date1 = new Date(this.value);
+          date1 = date1.addDays(21);
+          document.getElementById(id2).value = formatDate(date1);
+        }
+
+        function updateFields(){
+          if (window.localStorage) { 
+            for (i = 0; i < inputs.length; i++) {
+              localStorage[inputs[i].id] = inputs[i].value;
+            }
+          }
+
+          // get in array all the dates
+          var trans_dates = [];
+          trans_dates.push(new Date(document.getElementById("sell_otp").value));
+          trans_dates.push(new Date(document.getElementById("sell_exercise").value));
+          trans_dates.push(new Date(document.getElementById("sell_hdb_submission").value));
+          trans_dates.push(new Date(document.getElementById("sell_completion").value));
+
+          let d1= new Date(document.getElementById("sell_extension").value);
+          if (d1 instanceof Date && !isNaN(d1)) {
+            trans_dates.push(d1);
+          }
+          
+          trans_dates.push(new Date(document.getElementById("buy_otp").value));
+          trans_dates.push(new Date(document.getElementById("buy_exercise").value));
+          trans_dates.push(new Date(document.getElementById("buy_hdb_submission").value));
+          trans_dates.push(new Date(document.getElementById("buy_completion").value));
+
+          let d2= new Date(document.getElementById("buy_extension").value);
+          if (d2 instanceof Date && !isNaN(d2)) {
+            trans_dates.push(d2);
+          }
+
+          trans_dates.sort(function(a,b){
+            return new Date(a) - new Date(b);
+          });
+
+          let earliestDate = trans_dates[0];
+          let latestDate = trans_dates[trans_dates.length-1];
+          let Difference_In_Time = latestDate - earliestDate;
+          let Total_Difference_In_Days = Math.round(Difference_In_Time / (1000 * 3600 * 24));
+
+          for (var i=0;i<date_events.length;i++){
+            date_events[i].style = "display:none";
+          }
+
+          for (var i=0;i<trans_dates.length;i++) {
+            if (trans_dates[i] instanceof Date && !isNaN(trans_dates[i]) &&
+            trans_dates[i+1] instanceof Date && !isNaN(trans_dates[i+1])) {
+              let Difference_In_Days = Math.round((trans_dates[i+1] - trans_dates[i]) / (1000 * 3600 * 24));
+              date_events[i].style = "width:" + (Difference_In_Days/Total_Difference_In_Days*100)+"%";
+              date_events[i].innerHTML= '<div>' + trans_dates[i].toLocaleDateString() + '</div>';
+            } else if (trans_dates[i] instanceof Date && !isNaN(trans_dates[i])) { // 
+              date_events[i].innerHTML= '<div>' + trans_dates[i].toLocaleDateString() + '</div>';date_events[i].style = '';
+            }
+          }
+
+          setWidthTimelineEvent('sell_otp', 'sell_exercise', 'sell_otp_period',Total_Difference_In_Days);          
+          setWidthTimelineEvent('sell_exercise', 'sell_hdb_submission', 'sell_hdb_period',Total_Difference_In_Days);        
+          setWidthTimelineEvent('sell_hdb_submission', 'sell_completion', 'sell_completion_period',Total_Difference_In_Days);
+
+          document.getElementById("sell_delay_label").innerHTML = document.getElementById("sell_delay_submission").value+"d";
+          document.getElementById("buy_delay_label").innerHTML = document.getElementById("buy_delay_submission").value+"d";
+
+          document.getElementById("sell_teos_label").innerHTML = document.getElementById("sell_teos").value+" months";
+          document.getElementById("buy_teos_label").innerHTML = document.getElementById("buy_teos").value+" months";
+
+          document.getElementById("sell_otp_label").innerHTML = Math.round((new Date(document.getElementById("sell_exercise").value) - new Date(document.getElementById("sell_otp").value)) / (1000 * 3600 * 24))+"d";
+
+          document.getElementById("buy_otp_label").innerHTML = Math.round((new Date(document.getElementById("buy_exercise").value) - new Date(document.getElementById("buy_otp").value)) / (1000 * 3600 * 24))+"d";
+
+          // sell_teos_period
+          let sell_extensionD = new Date(document.getElementById('sell_extension').value);
+          if (sell_extensionD instanceof Date && !isNaN(sell_extensionD)) { // sell_extension
+            setWidthTimelineEvent('sell_completion', 'sell_extension', 'sell_teos_period',Total_Difference_In_Days);
+          } else {
+            document.getElementById('sell_teos_period').style="display:none;"
+          }
+
+          setWidthTimelineEvent('buy_otp', 'buy_exercise', 'buy_otp_period',Total_Difference_In_Days);          
+          setWidthTimelineEvent('buy_exercise', 'buy_hdb_submission', 'buy_hdb_period',Total_Difference_In_Days);        
+          setWidthTimelineEvent('buy_hdb_submission', 'buy_completion', 'buy_completion_period',Total_Difference_In_Days);
+
+          // buy_teos_period
+          let buy_extensionD = new Date(document.getElementById('buy_extension').value);
+          if (buy_extensionD instanceof Date && !isNaN(buy_extensionD)) { // sell_extension
+            setWidthTimelineEvent('buy_completion', 'buy_extension', 'buy_teos_period',Total_Difference_In_Days);
+          } else {
+            document.getElementById('buy_teos_period').style="display:none;"
+          }
+
+          var date1 = new Date(document.getElementById("sell_otp").value); // exercise
+          var differenceInDays = Math.round((date1-earliestDate) / (1000 * 3600 * 24));
+          document.getElementById("sell_otp_period").style.setProperty( "margin-left", differenceInDays/Total_Difference_In_Days*100 + "%");
+
+          var date1 = new Date(document.getElementById("buy_otp").value); // exercise
+          var differenceInDays = Math.round((date1-earliestDate) / (1000 * 3600 * 24));
+          document.getElementById("buy_otp_period").style.setProperty( "margin-left", differenceInDays/Total_Difference_In_Days*100 + "%");
+
+          // submission_apart
+          document.getElementById("submission_apart").innerHTML = "";
+          if(Date.parse(document.getElementById("buy_hdb_submission").value) < Date.parse(document.getElementById("sell_hdb_submission").value)){ 
+            setWidthTimelineEvent('buy_hdb_submission', 'sell_hdb_submission', 'submission_apart',Total_Difference_In_Days);         
+            var date1 = new Date(document.getElementById("buy_hdb_submission").value); 
+            var differenceFromStartDate = Math.round((date1-earliestDate) / (1000 * 3600 * 24));
+            document.getElementById("submission_apart").style.setProperty( "margin-left", differenceFromStartDate/Total_Difference_In_Days*100 + "%");
+            document.getElementById("submission_apart").style.setProperty( "background-color", "red");
+            
+            var differenceInDays = Math.round((new Date(document.getElementById("sell_hdb_submission").value) - date1) / (1000 * 3600 * 24));
+            if (differenceInDays> 0) {
+              document.getElementById("submission_apart").innerHTML = "" + differenceInDays + "d";
+            }
+          } else {
+            setWidthTimelineEvent('sell_hdb_submission', 'buy_hdb_submission', 'submission_apart',Total_Difference_In_Days);     
+            var date1 = new Date(document.getElementById("sell_hdb_submission").value); 
+            var differenceFromStartDate = Math.round((date1-earliestDate) / (1000 * 3600 * 24)); 
+            document.getElementById("submission_apart").style.setProperty( "margin-left", differenceFromStartDate/Total_Difference_In_Days*100 + "%");   
+
+            var differenceInDays = Math.round((new Date(document.getElementById("buy_hdb_submission").value) - date1) / (1000 * 3600 * 24));
+            if (differenceInDays < 21) {
+              document.getElementById("submission_apart").style.setProperty( "background-color", "red");
+            }
+            if (differenceInDays> 0) {
+              document.getElementById("submission_apart").innerHTML = "" +differenceInDays + "d";
+            }
+          }
+
+          // sell apart
+          document.getElementById("sell_apart").innerHTML = "";
+          if(Date.parse(document.getElementById("buy_otp").value) < Date.parse(document.getElementById("sell_otp").value)){
+            setWidthTimelineEvent('buy_otp', 'sell_otp', 'sell_apart',Total_Difference_In_Days);         
+
+             var differenceInDays = Math.round((new Date(document.getElementById("sell_otp").value) - new Date(document.getElementById("buy_otp").value)) / (1000 * 3600 * 24));
+            if (differenceInDays> 0) {
+              document.getElementById("sell_apart").innerHTML = "" + differenceInDays + "d";
+            }
+            document.getElementById("sellbuyLabel").innerHTML = "Days to Sell";
+          } else {
+            setWidthTimelineEvent('sell_otp', 'buy_otp', 'sell_apart',Total_Difference_In_Days);         
+             
+            document.getElementById("sell_apart").style.setProperty( "background-color", "#80006c");
+             var differenceInDays = Math.round((new Date(document.getElementById("buy_otp").value) - new Date(document.getElementById("sell_otp").value)) / (1000 * 3600 * 24));
+            if (differenceFromStartDate> 0) {
+              document.getElementById("sell_apart").innerHTML = "" + differenceFromStartDate + "d";
+            }
+            document.getElementById("sellbuyLabel").innerHTML = "Days to Buy";
+          }
+
+          var sell_last = (sell_extensionD instanceof Date && !isNaN(sell_extensionD)) ? "sell_extension" : "sell_completion";
+
+          var buy_last = (sell_extensionD instanceof Date && !isNaN(buy_extensionD)) ? "buy_extension" : "buy_completion";
+
+          // completion_apart
+          document.getElementById("completion_apart").innerHTML = "";
+          if(Date.parse(document.getElementById(buy_last).value) < Date.parse(document.getElementById(sell_last).value)){ 
+            setWidthTimelineEvent(buy_last, sell_last, 'completion_apart',Total_Difference_In_Days);      
+            var differenceFromStartDate = Math.round((Date.parse(document.getElementById(buy_last).value)-earliestDate) / (1000 * 3600 * 24));
+            document.getElementById("completion_apart").style.setProperty( "margin-left", differenceFromStartDate/Total_Difference_In_Days*100 + "%");
+             
+            var differenceInDays = Math.round((new Date(document.getElementById(sell_last).value) - new Date(document.getElementById(buy_last).value)) / (1000 * 3600 * 24));
+            if (differenceInDays> 0) {
+              document.getElementById("completion_apart").innerHTML = "" + differenceInDays + "d";
+            }
+          } else {    
+            setWidthTimelineEvent(sell_last, buy_last, 'completion_apart',Total_Difference_In_Days);    
+            var differenceFromStartDate = Math.round((Date.parse(document.getElementById(sell_last).value)-earliestDate) / (1000 * 3600 * 24));
+            document.getElementById("completion_apart").style.setProperty( "background-color", "red");  
+            document.getElementById("completion_apart").style.setProperty( "margin-left", differenceFromStartDate/Total_Difference_In_Days*100 + "%");  
+
+            var differenceInDays = Math.round((new Date(document.getElementById(buy_last).value) - new Date(document.getElementById(sell_last).value)) / (1000 * 3600 * 24));
+            if (differenceInDays> 0) {
+              document.getElementById("completion_apart").innerHTML = "" +differenceInDays + "d";
+            }
+          }
+
+        } // end of update_fields
+
+        // extension
+        document.getElementById('sell_teos').addEventListener('change', extensionPeriod.bind(document.getElementById('sell_teos'),"sell_completion", "sell_extension"), false);
+        document.getElementById('buy_teos').addEventListener('change', extensionPeriod.bind(document.getElementById('buy_teos'),"buy_completion", "buy_extension"), false);
+
+        // completion
+        document.getElementById('sell_hdb_submission').addEventListener('change', completionPeriod.bind(document.getElementById('sell_hdb_submission'),"sell_completion", "sell_exercise", "sell_delay_submission"), false);
+
+        document.getElementById('buy_hdb_submission').addEventListener('change', completionPeriod.bind(document.getElementById('buy_hdb_submission'),"buy_completion", "buy_exercise", "buy_delay_submission"), false);
+
+        // delay submission
+        document.getElementById('sell_delay_submission').addEventListener('change', delaySubmission.bind(document.getElementById('sell_delay_submission'),"sell_exercise","sell_hdb_submission"), false);
+
+        document.getElementById('buy_delay_submission').addEventListener('change', delaySubmission.bind(document.getElementById('buy_delay_submission'),"buy_exercise","buy_hdb_submission"), false);
+
+        // exercise otp
+        document.getElementById('sell_otp').addEventListener('change', exercisePeriod.bind(document.getElementById('sell_otp'),"sell_exercise"), false);
+
+        document.getElementById('buy_otp').addEventListener('change', exercisePeriod.bind(document.getElementById('buy_otp'),"buy_exercise"), false);
+
+        // helpers
+        Date.prototype.addDays = function(days) {
+          var date = new Date(this.valueOf());
+          date.setDate(date.getDate() + days);
+          return date;
+        }
+        Date.prototype.subDays = function(days) {
+          var date = new Date(this.valueOf());
+          date.setDate(date.getDate() - days);
+          return date;
+        }
+
+        function setWidthTimelineEvent(idStart,idEnd,idChange,Total_Difference_In_Days){
+          var date0 = new Date(document.getElementById(idStart).value); // option
+          var date1 = new Date(document.getElementById(idEnd).value); // exercise
+          var differenceInDays = Math.round((date1-date0) / (1000 * 3600 * 24));
+          document.getElementById(idChange).style = "width:" + differenceInDays/Total_Difference_In_Days*100 + "%"
+        }
+
+        function formatDate(date) {
+          var d = new Date(date),
+              month = '' + (d.getMonth() + 1),
+              day = '' + d.getDate(),
+              year = d.getFullYear();
+
+          if (month.length < 2) 
+              month = '0' + month;
+          if (day.length < 2) 
+              day = '0' + day;
+
+          return [year, month, day].join('-');
+        }
+
+        for (i = 0; i < inputs.length; i++) {
+          inputs[i].onchange=updateFields;
+        }
+
+        window.onload = function() {
+          if (window.localStorage) {
+            for (var k in localStorage){
+                if (document.getElementById(k)){
+                document.getElementById(k).value = localStorage[k];
+                }
+            }
+            updateFields();
+          }
+        }
+
+        function numberWithCommas(x) {
+            x=x.toFixed(2);
+            var parts = x.toString().split(".");
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            return parts.join(".");
+
+            return x;
+        }
+
+        function password_prompt (label_message, button_message, arg3) {
+
+          if (typeof label_message !== "string") var label_message = "Password:";
+          if (typeof button_message !== "string") var button_message = "Submit";
+          if (typeof arg3 === "function") {
+              var callback = arg3;
+          }
+          if (typeof callback !== "function") var callback = function(password){};
+
+          var submit = function() {
+              var date = new Date();
+              localStorage.expiry = date.setDate(date.getDate() + 1);
+
+              callback(input.value);
+              document.body.removeChild(div);
+              window.removeEventListener("resize", resize, false);
+          };
+          var resize = function() {
+              div.style.left = ((window.innerWidth / 2) - (width / 2)) + "px";
+              div.style.top = ((window.innerHeight / 2) - (height / 2)) + "px";
+          };
+
+          var div = document.createElement("div");
+          div.id = "password_prompt";
+          div.style.background = "white";
+          div.style.color = "black";
+          div.style.border = "1px solid black";
+          div.style.padding = "16px";
+          div.style.position = "fixed";
+
+          var label = document.createElement("label");
+          label.id = "password_prompt_label";
+          label.innerHTML = label_message;
+          label.for = "password_prompt_input";
+          div.appendChild(label);
+
+          div.appendChild(document.createElement("br"));
+
+          var input = document.createElement("input");
+          input.id = "password_prompt_input";
+          input.type = "password";
+          input.addEventListener("keyup", function(e) {
+              if (event.keyCode == 13) submit();
+          }, false);
+          div.appendChild(input);
+
+          div.appendChild(document.createElement("br"));
+          div.appendChild(document.createElement("br"));
+
+          var button = document.createElement("button");
+          button.innerHTML = button_message;
+          button.addEventListener("click", submit, false);
+          div.appendChild(button);
+
+          document.body.appendChild(div);
+          input.focus();
+          window.addEventListener("resize", resize, false);
+        };
+      
+      </script>
+      <footer style="font-size: 20px;color: #111;text-align: center;font-size: 20px;text-align: center;background-color: #00a884;padding: 8px 15px;color: #FFF;border-radius: 30px;position: fixed;bottom: 0;right:-25px;padding:8px 50px;z-index:9;"><a href="https://api.whatsapp.com/send?phone=6586989590" style="color: #FFF;font-family: sans-serif;">► WhatsApp&nbsp;8698&nbsp;9590</a></footer>
+    </body>
+</html>
