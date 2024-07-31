@@ -15,7 +15,7 @@
             }
             h2 {margin:0;font-size: 20px;color: blue;}
             label { display: block;padding-bottom: 8px; }
-            select,
+            select,input[type="date"],
             input[type='text']{ padding: 4px 8px;display: block;font-size: 18px;border: 0;border-left: 2px solid blue;width:100%; }
 
             input[type='text']+select{margin-top:6px;border: 2px solid #a5cf4d;color: #1b6160;font-weight: bold;}
@@ -47,9 +47,7 @@
             <tr>
               <td>
                 <label for="year_born1">Year Born</label>
-                <select id="year_born1">
-                  
-                </select>
+                <input type="date" id="year_born1">
               </td>
               <td>
                 <label for="frs1">Full Retirement Sum (FRS)</label>
@@ -83,9 +81,7 @@
             <tr>
               <td>
                 <label for="year_born2">Year Born</label>
-                <select id="year_born2">
-                  
-                </select>
+                <input type="date" id="year_born2">
               </td>
               <td>
                 <label for="frs2">Full Retirement Sum (FRS)</label>
@@ -113,7 +109,27 @@
                 <div id="remaining_refund2_breakdown" style="color:blue"></div>
               </td>
             </tr>
+            <tr>
+              <td colspan="2"><h2>Expenses</h2></td>
+            </tr>
+            <tr>
+              <td>
+                <label for="resale_application">Resale Application</label>
+                <input type="text" id="resale_application" placeholder="e.g. 80"/>
+              </td>
+              <td>
+                <label for="legal_fees">Legal Fees</label>
+                <input type="text" id="legal_fees" placeholder="2,000"/>
+              </td>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <label for="agent_fee">Agent Fee (2% + GST)</label>
+                <input type="text" disabled id="agent_fee"/>
+              </td>
+            </tr>
             
+
             
             <tr class="highlight">
               <td>
@@ -139,39 +155,40 @@
             });
           }
 
-          let frs_map = {"1995":"40,000",
-            "1996":"45,000",
-            "1997":"50,000",
-            "1998":"55,000",
-            "1999":"60,000",
-            "2000":"65,000",
-            "2001":"70,000",
-            "2002":"75,000",
-            "2003":"80,000",
-            "2004":"84,500",
-            "2005":"90,000",
-            "2006":"94,600",
-            "2007":"99,600",
-            "2008":"106,000",
-            "2009":"117,000",
-            "2010":"123,000",
-            "2011":"131,000",
-            "2012":"139,000",
-            "2013":"148,000",
-            "2014":"155,000",
-            "2015":"161,000",
-            "2016":"161,000",
-            "2017":"166,000",
-            "2018":"171,000",
-            "2019":"176,000",
-            "2020":"181,000",
-            "2021":"186,000",
-            "2022":"192,000",
-            "2023":"198,800",
-            "2024":"205,800",
-            "2025":"213,000",
-            "2026":"220,400",
-            "2027":"228,200"};
+          let frs_map = {
+            "1/7/1995":"40,000",
+            "1/7/1996":"45,000",
+            "1/7/1997":"50,000",
+            "1/7/1998":"55,000",
+            "1/7/1999":"60,000",
+            "1/7/2000":"65,000",
+            "1/7/2001":"70,000",
+            "1/7/2002":"75,000",
+            "1/7/2003":"80,000",
+            "1/7/2004":"84,500",
+            "1/7/2005":"90,000",
+            "1/7/2006":"94,600",
+            "1/7/2007":"99,600",
+            "1/7/2008":"106,000",
+            "1/7/2009":"117,000",
+            "1/7/2010":"123,000",
+            "1/7/2011":"131,000",
+            "1/7/2012":"139,000",
+            "1/7/2013":"148,000",
+            "1/7/2014":"155,000",
+            "1/7/2015":"161,000",
+            "1/1/2017":"166,000",
+            "1/1/2018":"171,000",
+            "1/1/2019":"176,000",
+            "1/1/2020":"181,000",
+            "1/1/2021":"186,000",
+            "1/1/2022":"192,000",
+            "1/1/2023":"198,800",
+            "1/1/2024":"205,800",
+            "1/1/2025":"213,000",
+            "1/1/2026":"220,400",
+            "1/1/2027":"228,200"
+          };
 
           let tdsr = 55;
           let msr = 30;
@@ -180,19 +197,46 @@
 
           var text_inputs = document.querySelectorAll('input[type="text"]');
           var selects = document.querySelectorAll('select');
+          var date_inputs = document.querySelectorAll('input[type="date"]');
+
           function updateFields() {
-            let age1 = parseInt( document.getElementById("year_born1").value)+55;
             let frs1 = 0;
-            if (parseInt(age1)) {
-              frs1 = getAmount(frs_map[age1]);
-              document.getElementById("frs1").value = numberWithCommas(frs1);
+            var bday1 = new Date(document.getElementById("year_born1").value);
+            if (bday1 instanceof Date && !isNaN(bday1)) {
+              var ff_bday1 = //bday1.setFullYear(bday1.getFullYear() + 55);
+                new Date(bday1.getFullYear()+55, bday1.getMonth(),bday1.getDate());
+              
+              for (var frs_str in frs_map) {
+                var arr = frs_str.split("/");
+                let frs_date= new Date(parseInt(arr[2]),
+                parseInt(arr[1]-1),parseInt(arr[0])); //new Date(int year,int Month,int day)
+
+                if (ff_bday1.getTime() < frs_date.getTime()) {
+                  break;
+                }
+
+                frs1 = getAmount(frs_map[frs_str]);
+              }
             }
-            let age2 = parseInt( document.getElementById("year_born2").value)+55;
+            document.getElementById("frs1").value = numberWithCommas(frs1);
+
             let frs2 = 0;
-            if (parseInt(age2)) {
-              frs2 = getAmount(frs_map[age2]);
-              document.getElementById("frs2").value = numberWithCommas(frs2);
+            var bday2 = new Date(document.getElementById("year_born2").value);
+            if (bday2 instanceof Date && !isNaN(bday2)) {
+              var ff_bday2 = 
+                new Date(bday2.getFullYear()+55, bday2.getMonth(),bday2.getDate());
+              
+              for (var frs_str in frs_map) {
+                var arr = frs_str.split("/");
+                let frs_date= new Date(parseInt(arr[2]),
+                parseInt(arr[1]-1),parseInt(arr[0])); 
+                if (ff_bday2.getTime() < frs_date.getTime()) {
+                  break;
+                }
+                frs2 = getAmount(frs_map[frs_str]);
+              }
             }
+            document.getElementById("frs2").value = numberWithCommas(frs2);
 
             let selling_price = getAmountElement('selling_price');
             let outstanding_loan = getAmountElement('outstanding_loan');
@@ -200,7 +244,9 @@
             let cpf_refund1 = getAmountElement('cpf_refund1');
             let current_ra2 = getAmountElement('current_ra2');
             let cpf_refund2 = getAmountElement('cpf_refund2');
-            
+            let resale_application = getAmountElement('resale_application');
+            let legal_fees = getAmountElement('legal_fees');
+
             let cash_proceed = selling_price-outstanding_loan-cpf_refund1-cpf_refund2;
             document.getElementById("cash_proceed_breakdown").innerHTML = "";     
             let cash_proceed_breakdown_str = "";   
@@ -223,7 +269,7 @@
             document.getElementById("remaining_refund1_breakdown").innerHTML = "";            
             if (new_ra1 > frs1) {
               var remaining_refund1 = new_ra1-frs1;
-              if (current_ra1 > frs1){ console.log(0);
+              if (current_ra1 > frs1){ 
                 remaining_refund1 -= (current_ra1-frs1);
                 document.getElementById("new_ra1").value = numberWithCommas(current_ra1);
               } else {
@@ -256,6 +302,21 @@
               cash_proceed_breakdown_str += " + Remaining Refund 2";
             }
 
+            let agent_fee = 0.02 * selling_price;
+            agent_fee*=1.09
+            if (resale_application>0) {
+              cash_proceed-=resale_application;
+              cash_proceed_breakdown_str += " - Resale Application"
+            }
+            if (legal_fees>0) {
+              cash_proceed-=legal_fees;
+              cash_proceed_breakdown_str += " - Legal Fees"
+            }
+            if (agent_fee>0) {
+              cash_proceed-=agent_fee;
+              cash_proceed_breakdown_str += " - Agent Fee"
+            }
+            document.getElementById("agent_fee").value = numberWithCommas(agent_fee);
             document.getElementById("cash_proceed").innerHTML = numberWithCommas(cash_proceed);
             document.getElementById("selling_price").value = numberWithCommas(selling_price);
             document.getElementById("outstanding_loan").value = numberWithCommas(outstanding_loan);
@@ -265,9 +326,13 @@
             document.getElementById("cpf_refund2").value = numberWithCommas(cpf_refund2);
             document.getElementById("cash_proceed_breakdown").innerHTML = cash_proceed_breakdown_str;  
 
-            if (window.localStorage) { 
+            if (window.localStorage) {
               for (i = 0; i < text_inputs.length; i++) {
                 localStorage[text_inputs[i].id] = text_inputs[i].value;
+              }
+
+              for (i = 0; i < date_inputs.length; i++) {
+                localStorage[date_inputs[i].id] = date_inputs[i].value;
               }
 
               for (i = 0; i < selects.length; i++) {
@@ -280,24 +345,28 @@
             text_inputs[i].onchange=updateFields;
           }
 
+          for (i = 0; i < date_inputs.length; i++) {
+            date_inputs[i].onchange=updateFields;
+          }
+
           for (i = 0; i < selects.length; i++) {
             selects[i].onchange=updateFields;
           }
 
           window.onload = function() {
-            var year_born1 = document.getElementById("year_born1"),
-                year_born2 = document.getElementById("year_born2");
-            let years = populateYears();
+            // var year_born1 = document.getElementById("year_born1"),
+            //     year_born2 = document.getElementById("year_born2");
+            // let years = populateYears();
             
-            for(var i=0;i<years.length;i++) {
-              var opt = document.createElement("option");
-              opt.innerHTML = years[i];
-              year_born1.appendChild(opt);
+            // for(var i=0;i<years.length;i++) {
+            //   var opt = document.createElement("option");
+            //   opt.innerHTML = years[i];
+            //   year_born1.appendChild(opt);
 
-              var opt2 = document.createElement("option");
-              opt2.innerHTML = years[i]; // whatever property it has
-              year_born2.appendChild(opt2);
-            }
+            //   var opt2 = document.createElement("option");
+            //   opt2.innerHTML = years[i]; // whatever property it has
+            //   year_born2.appendChild(opt2);
+            // }
 
             if (window.localStorage) {
               for (var k in localStorage){

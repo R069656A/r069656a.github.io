@@ -192,75 +192,76 @@
       <br/>
       <br/>
 
-      <table>
-        <tr><td colspan="7"><h2 style="margin-top:20px;margin-bottom:10px;">Sell</h2></td></tr>
-        <tr>
-          <td>
-            <label for="sell_otp">Issue OTP</label>
-            <input type="date" placeholder="" id="sell_otp"/>
-          </td>
-          <td>
-            <label for="sell_exercise">Exercise Date</label>
-            <input type="date" id="sell_exercise"/>
-          </td>
-          <td>
-            <label for="sell_delay_submission">Delay Submission (days)</label>
-            <input type="number" placeholder="Up to 120d" id="sell_delay_submission"/>
-          </td>
-          <td>
-            <label for="sell_hdb_submission">HDB Submission</label>
-            <input type="date" placeholder="" id="sell_hdb_submission"/>
-          </td>
-          <td>
-            <label for="sell_completion">Completion</label>
-            <input type="date" readonly placeholder="" id="sell_completion"/>
-          </td>
-          <td>
-            <label for="sell_teos">Temporary Extension of Stay (months)</label>
-            <input type="number" placeholder="Up to 3 months" id="sell_teos"/>
-          </td>
-          <td>
-            <label for="sell_extension">Extension of Stay</label>
-            <input type="date" readonly placeholder="" id="sell_extension"/>
-          </td>
-        </tr>
-        <tr><td colspan="7"><h2 style="margin-top:20px;margin-bottom:10px;">Buy</h2></td></tr>
-        <tr>
-          <td>
-            <label for="buy_otp">Pay Option Fee</label>
-            <input type="date" placeholder="" id="buy_otp"/>
-          </td>
-          <td>
-            <label for="buy_exercise">Exercise Date</label>
-            <input type="date" id="buy_exercise"/>
-          </td>
-          <td>
-            <label for="buy_delay_submission">Delay Submission (days)</label>
-            <input type="number" placeholder="Up to 120d" id="buy_delay_submission"/>
-          </td>
-          <td>
-            <label for="buy_hdb_submission">HDB Submission</label>
-            <input type="date" placeholder="" id="buy_hdb_submission"/>
-          </td>
-          <td>
-            <label for="buy_completion">Completion</label>
-            <input type="date" readonly placeholder="" id="buy_completion"/>
-          </td>
-          <td>
-            <label for="buy_teos">Temporary Extension of Stay (months)</label>
-            <input type="number" placeholder="Up to 3 months" id="buy_teos"/>
-          </td>
-          <td>
-            <label for="buy_extension">Extension of Stay</label>
-            <input type="date" readonly placeholder="" id="buy_extension"/>
-          </td>
-        </tr>
-        <tr><td colspan="7"><hr/></td></tr>
-        <tr>
-          <td colspan="7"><button onclick="tWeeksApart()" style="float:left;">3 weeks apart (sell first)</button><button onclick="tWeeksApart_buy()" style="float:left;">3 weeks apart (buy first)</button><button style="float:left;">Contra</button></td>
-        </tr>
-      </table>
-
+      <div style="padding:0 30px">
+        <table>
+          <tr><td colspan="7"><h2 style="margin-top:20px;margin-bottom:10px;">Sell</h2></td></tr>
+          <tr>
+            <td>
+              <label for="sell_otp">Issue OTP</label>
+              <input type="date" placeholder="" id="sell_otp"/>
+            </td>
+            <td>
+              <label for="sell_exercise">Exercise Date</label>
+              <input type="date" id="sell_exercise"/>
+            </td>
+            <td>
+              <label for="sell_delay_submission">Delay Submission (days)</label>
+              <input type="number" placeholder="Up to 120d" id="sell_delay_submission"/>
+            </td>
+            <td>
+              <label for="sell_hdb_submission">HDB Submission</label>
+              <input type="date" placeholder="" id="sell_hdb_submission"/>
+            </td>
+            <td>
+              <label for="sell_completion">Completion</label>
+              <input type="date" readonly placeholder="" id="sell_completion"/>
+            </td>
+            <td>
+              <label for="sell_teos">Temporary Extension of Stay (months)</label>
+              <input type="number" placeholder="Up to 3 months" id="sell_teos"/>
+            </td>
+            <td>
+              <label for="sell_extension">Extension of Stay</label>
+              <input type="date" readonly placeholder="" id="sell_extension"/>
+            </td>
+          </tr>
+          <tr><td colspan="7"><h2 style="margin-top:20px;margin-bottom:10px;">Buy</h2></td></tr>
+          <tr>
+            <td>
+              <label for="buy_otp">Pay Option Fee</label>
+              <input type="date" placeholder="" id="buy_otp"/>
+            </td>
+            <td>
+              <label for="buy_exercise">Exercise Date</label>
+              <input type="date" id="buy_exercise"/>
+            </td>
+            <td>
+              <label for="buy_delay_submission">Delay Submission (days)</label>
+              <input type="number" placeholder="Up to 120d" id="buy_delay_submission"/>
+            </td>
+            <td>
+              <label for="buy_hdb_submission">HDB Submission</label>
+              <input type="date" placeholder="" id="buy_hdb_submission"/>
+            </td>
+            <td>
+              <label for="buy_completion">Completion</label>
+              <input type="date" readonly placeholder="" id="buy_completion"/>
+            </td>
+            <td>
+              <label for="buy_teos">Temporary Extension of Stay (months)</label>
+              <input type="number" placeholder="Up to 3 months" id="buy_teos"/>
+            </td>
+            <td>
+              <label for="buy_extension">Extension of Stay</label>
+              <input type="date" readonly placeholder="" id="buy_extension"/>
+            </td>
+          </tr>
+          <tr><td colspan="7"><hr/></td></tr>
+          <tr>
+            <td colspan="7"><button onclick="tWeeksApart()" style="float:left;">3 weeks apart (sell first)</button><button onclick="tWeeksApart_buy()" style="float:left;">3 weeks apart (buy first)</button><button style="float:left;" onclick="tWeeksApart(true)">Contra (Sell First)</button><button style="float:left;" onclick="tWeeksApart(true)">Contra (Buy First)</button></td>
+          </tr>
+        </table>
+      </div>
       <script>
         let correct_password = "Gemini!"
         if (localStorage.expiry === undefined || new Date().getTime() > localStorage.expiry) {
@@ -279,10 +280,14 @@
         var date_inputs = document.querySelectorAll('input[type="date"]');
         var date_events = document.querySelectorAll('.date_event');
 
+
         // main func
-        function tWeeksApart_buy(){ // buy first
+
+        function tWeeksApart_buy(is_contra = false){ // buy first
           var d = new Date(document.getElementById("buy_hdb_submission").value);
-          d = d.subDays(21);
+          if (!is_contra) {
+            d = d.subDays(21);
+          }
           document.getElementById("sell_hdb_submission").value = formatDate(d);
 
           var delay_sub = parseInt(document.getElementById("sell_delay_submission").value);
@@ -296,9 +301,11 @@
           // updateFields();
         }
 
-        function tWeeksApart(){ // sell first
+        function tWeeksApart(is_contra = false){ // sell first
           var d = new Date(document.getElementById("sell_hdb_submission").value);
-          d = d.addDays(21);
+          if (!is_contra) {
+            d = d.addDays(21);
+          }
           document.getElementById("buy_hdb_submission").value = formatDate(d);
 
           var delay_sub = parseInt(document.getElementById("buy_delay_submission").value);
@@ -330,8 +337,10 @@
           let Difference_In_Days = Math.round(Difference_In_Time / (1000 * 3600 * 24));
           document.getElementById(delayPeriod).value = Difference_In_Days;
 
-          date1 = date1.addDays(84);
+          date1 = date1.addDays(84); // 12 weeks 
           document.getElementById(id2).value = formatDate(date1);
+          document.getElementById("sell_teos").dispatchEvent(new Event('change'));
+          document.getElementById("buy_teos").dispatchEvent(new Event('change'));
         }
 
         function delaySubmission(id1,id2){
@@ -340,6 +349,8 @@
             date1 = date1.addDays(parseInt( this.value));
             document.getElementById(id2).value = formatDate(date1);
             document.getElementById(id2).dispatchEvent(new Event('change'));
+            document.getElementById("sell_teos").dispatchEvent(new Event('change'));
+            document.getElementById("buy_teos").dispatchEvent(new Event('change'));
           }
         }
 
@@ -347,6 +358,11 @@
           var date1 = new Date(this.value);
           date1 = date1.addDays(21);
           document.getElementById(id2).value = formatDate(date1);
+
+          document.getElementById("sell_delay_submission").dispatchEvent(new Event('change'));
+          document.getElementById("buy_delay_submission").dispatchEvent(new Event('change'));
+          document.getElementById("sell_teos").dispatchEvent(new Event('change'));
+          document.getElementById("buy_teos").dispatchEvent(new Event('change'));
         }
 
         function updateFields(){
@@ -558,6 +574,30 @@
           var date1 = new Date(document.getElementById(idEnd).value); // exercise
           var differenceInDays = Math.round((date1-date0) / (1000 * 3600 * 24));
           document.getElementById(idChange).style = "width:" + differenceInDays/Total_Difference_In_Days*100 + "%"
+
+          date0.setHours(0, 0, 0, 0);
+          date1.setHours(0, 0, 0, 0);
+
+          for (var i=0;i<date_events.length;i++){
+            if (date_events[i].childNodes[0]) {
+
+              var arr = date_events[i].childNodes[0].innerHTML.split("/");
+              let dateObj= new Date(parseInt(arr[2]),
+              parseInt(arr[1]-1),parseInt(arr[0])); //new Date(int year,int Month,int day)
+
+              if ((idStart == 'sell_otp' && idEnd == 'sell_exercise') || (idStart == 'buy_otp' && idEnd == 'buy_exercise')) {
+                if (dateObj.getTime() === date0.getTime() || dateObj.getTime() === date1.getTime()) {
+                  date_events[i].childNodes[0].style = "background-color:#fbc001";
+                }
+              }
+
+              if ((idStart == 'sell_exercise' && idEnd == 'sell_hdb_submission') || (idStart == 'buy_exercise' && idEnd == 'buy_hdb_submission')) {
+                if (dateObj.getTime() === date1.getTime()) {
+                  date_events[i].childNodes[0].style = "background-color:#ed7d31";
+                }
+              }
+            }
+          }
         }
 
         function formatDate(date) {
