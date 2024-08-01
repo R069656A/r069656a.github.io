@@ -503,8 +503,8 @@
              
             document.getElementById("sell_apart").style.setProperty( "background-color", "#80006c");
              var differenceInDays = Math.round((new Date(document.getElementById("buy_otp").value) - new Date(document.getElementById("sell_otp").value)) / (1000 * 3600 * 24));
-            if (differenceFromStartDate> 0) {
-              document.getElementById("sell_apart").innerHTML = "" + differenceFromStartDate + "d";
+            if (differenceInDays> 0) {
+              document.getElementById("sell_apart").innerHTML = "" + differenceInDays + "d";
             }
             document.getElementById("sellbuyLabel").innerHTML = "Days to Buy";
           }
