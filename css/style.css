@@ -307,6 +307,7 @@ span, a, a:hover {
 
 .logo > span { display: inline;color:#fefefe;}
 
+.logo.logo-dark2 > span,
 .logo.logo-dark > span { display: inline;color:#020202;}
 
 /* ----------------------------------------------------------------
@@ -1010,7 +1011,7 @@ span, a, a:hover {
   display: inline-block;
   position: absolute;
   top: 15px;
-  left: 15px;
+  right: 15px;
   background: #111;
   color: #fff;
   padding: 10px 15px;
@@ -1141,7 +1142,8 @@ span, a, a:hover {
   font-weight: 700;
 }
 .blogs .posts .post .share-post ul {
-  float: right;
+  /* float: right; */
+  display: inline-block;
 }
 .blogs .posts .post .share-post ul li {
   display: inline-block;
