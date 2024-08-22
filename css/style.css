@@ -1143,8 +1143,8 @@ span, a, a:hover {
   font-weight: 700;
 }
 .blogs .posts .post .share-post ul {
-  /* float: right; */
-  display: inline-block;
+  float: right;
+  /* display: inline-block; */
 }
 .blogs .posts .post .share-post ul li {
   display: inline-block;

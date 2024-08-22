@@ -47,6 +47,13 @@
             <!-- <img src="img/logo-light.png" alt="logo">-->
              Wee<span>Kheong</span>
         </a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item">
+                <a class="nav-link active" target="_blank" href="https://wa.me/86989590" style="color:#43cba5 !important;"><i class="icofont icofont-social-whatsapp"></i> Whatsapp: 86989590</a>
+              </li>
+            </ul>
+          </div>
         </div>
     </nav>
 
@@ -113,15 +120,13 @@
                                     <span>Share Post</span>
                                     <ul>
                                         <li><a target="_blank" id ="facebook_link" href="https://www.facebook.com/sharer/sharer.php?u="><i class="icofont icofont-social-facebook"></i></a></li>
+                                        <li><a target="_blank" id ="linkedin_link" href="https://www.linkedin.com/sharing/share-offsite/?url="><i class="icofont icofont-social-linkedin"></i></a></li>
+                                        <li><a target="_blank" id ="email_link" href="mailto:?subject=&body="><i class="icofont icofont-email"></i></a></li>
                                     </ul>
                                 </div>
 
                             </div>
                         </div>
-
-                        
-
-                        
 
                     </div>
                 </div>
@@ -172,6 +177,8 @@
 
     <script>
         document.getElementById("facebook_link").setAttribute('href', "https://www.facebook.com/sharer/sharer.php?u="+window.location.href);
+        document.getElementById("linkedin_link").setAttribute('href', "https://www.linkedin.com/sharing/share-offsite/?url="+window.location.href);
+        document.getElementById("email_link").setAttribute('href', "mailto:?subject="+document.title+"&body="+escape(window.location.href));
     </script>
 
     <!-- jQuery -->
