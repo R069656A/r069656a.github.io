@@ -26,6 +26,11 @@
     <link rel="stylesheet" href="../css/style.css">
     <style>
         .post-cont p {margin-bottom:20px;}
+        @media screen and (max-width: 991px) {
+            .post_whatsapp { display: block;background: none!important;max-height: none;padding-top: 0; }
+            .post_whatsapp .nav-link{padding: 0;margin: 0 !important;text-align: left;font-size: 15px !important;}
+        }   
+        
     </style>
 </head>
 <body style="">
@@ -47,7 +52,7 @@
             <!-- <img src="img/logo-light.png" alt="logo">-->
              Wee<span>Kheong</span>
         </a>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="collapse navbar-collapse post_whatsapp" id="navbarSupportedContent">
             <ul class="navbar-nav ml-auto">
               <li class="nav-item">
                 <a class="nav-link active" target="_blank" href="https://wa.me/86989590" style="color:#43cba5 !important;"><i class="icofont icofont-social-whatsapp"></i> Whatsapp: 86989590</a>
