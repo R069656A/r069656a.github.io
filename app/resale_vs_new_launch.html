@@ -2,7 +2,7 @@
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title> Interest Rates vs Price Increase - WeeKheong Calculator </title>
+        <title> Resale vs New Launch - WeeKheong Calculator </title>
         <style>
           * { -webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box; }
             body{font-family:sans-serif;}
@@ -25,9 +25,9 @@
             .stylish_table tr.positive_r td { background-color:#2e8f60;color:#FFF; }
             .stylish_table tr.negative_r td { background-color:#bc848e; }
             .stylish_table2 tr:nth-child(1) td {background-color:#333;color:#FFF;}
-            .stylish_table2 td:first-child{background-color:#753c81;color:#FFF;}
-            .stylish_table2 tr:nth-child(even) td:first-child{background-color:#813c3c;}
-            .stylish_table2 tr:nth-child(even) td:last-child{background-color:#ccc;}
+            /* .stylish_table2 td:first-child{background-color:#753c81;color:#FFF;} */
+            /* .stylish_table2 tr:nth-child(even) td:first-child{background-color:#813c3c;}
+            .stylish_table2 tr:nth-child(even) td:last-child{background-color:#ccc;} */
             .stylish_table2 td { padding:2px;font-size: 16px; }
             select,input[type="text"]{font-size:16px;background:none;border:0;width:100%;}
             .container_table > tbody > tr > td { padding:8px; }
@@ -50,9 +50,8 @@
 
             function updateGrowth ( ) {
                 var purchase = getAmount(document.getElementById("purchase").value);
+                document.getElementById("vspurchase").value = numberWithCommas(purchase);
                 var growthPercent = getAmount(document.getElementById("growth").value);
-                document.getElementById("purchase2").value = numberWithCommas(growthPercent/100*purchase + purchase);
-                var purchase2 = getAmount(document.getElementById("purchase2").value);
                 document.getElementById("principal").value = numberWithCommas(purchase*0.75);
                 document.getElementById("principal2").value = numberWithCommas(purchase2*0.75);
                 document.getElementById("purchase").value = numberWithCommas(purchase);
@@ -106,20 +105,16 @@
                 }
 
                 const total_interests = document.getElementsByClassName("total_interest");
-                const total_principals = document.getElementsByClassName("total_principal");
-                let additional_loan = numberWithCommas( 
-                    (getAmount( total_interests[0].innerHTML) + getAmount( total_principals[0].innerHTML)) - 
-                    (getAmount(total_interests[1].innerHTML) + getAmount( total_principals[1].innerHTML))
-                );
+                let additional_interest = numberWithCommas( getAmount( total_interests[0].innerHTML)-getAmount(total_interests[1].innerHTML));
                 let price_difference = numberWithCommas(purchase2-purchase);
                 
-                let amount_saved = ( getAmount( price_difference)-getAmount( additional_loan));
+                let amount_saved = ( getAmount( price_difference)-getAmount( additional_interest));
 
                 var summary = document.getElementById("summary");
                 summary_html = "<table class=\"stylish_table\">";
                 summary_html += 
                     `<tr><td>Holding Period:</td><td>${holding} months</td>
-                    </tr><tr><td>Additional Loan: </td><td><b>$${additional_loan}</b></td></tr>
+                    </tr><tr><td>Additional Interest: </td><td><b>$${additional_interest}</b></td></tr>
                     <tr><td>Price Difference: </td><td><b>$${price_difference}</b></td></tr>
                     <tr class="${(amount_saved>0) ?"positive_r":"negative_r" }"><td><b>Amount saved:</b></td><td><b>$${numberWithCommas( amount_saved)}</b></td></td>
                     `;
@@ -146,12 +141,11 @@
                 var result = "<table class=\"stylish_table\">" +
                     "<tr><td>Loan amount:</td><td> $" + numberWithCommas(balance) +  "</td></tr>" + 
                     "<tr><td>Interest rate:</td><td> " + (interestRate*100).toFixed(2) +  "%</td></tr>" +
-                    "<tr><td>Loan Tenure (Months):</td><td> " + terms + "</td></tr>" +
+                    "<tr><td>Number of months:</td><td> " + terms + "</td></tr>" +
                     "<tr><td>Monthly payment:</td><td> $" + numberWithCommas(payment) + "</td></tr>" +
                     "<tr><td>Total paid:</td><td> $" + numberWithCommas(payment * terms) + "</td></tr>";
                     
                 var holdingInterest = 0;
-                var holdingPrincipal = 0;
 
                 //add header row for table to return string
                 var result2 = "<table class=\"report_table\"><thead><tr><th>Month #</th><th>Balance</th>" + 
@@ -194,7 +188,6 @@
                     
                     if (count<holding){
                         holdingInterest += interest;
-                        holdingPrincipal += monthlyPrincipal;
                     }
                 }
                 
@@ -202,7 +195,6 @@
                 result2 += "</table>";
 
                 result += "<tr><td>Interest ("+holding+" months):</td><td> $<span class=\"total_interest\">" + numberWithCommas(holdingInterest) + "</span></td></tr>"+
-                "<tr><td>Principal ("+holding+" months):</td><td> $<span class=\"total_principal\">" + numberWithCommas(holdingPrincipal) + "</span></td></tr>"+
                     "</table><br/>";
                 
                 //returns the concatenated string to the page
@@ -305,79 +297,71 @@
     </head>
     <body>
         <fieldset>
-            <legend>Interest Rates vs Price Increase</legend>
-            <table class="container_table" style="width:100%;table-layout: fixed;border-collapse: collapse;">
+            <legend>Resale vs New Launch</legend>
+            <table class="stylish_table2" style="table-layout:fixed;">
                 <tr>
-                    <td>
-                        <table class="stylish_table2">
-                            <tr>
-                                <td colspan="3" style="text-align:center"><b><u>Today</u></b></td>
-                            </tr>
-                            <tr>
-                                <td><label for="purchase"><b>Purchase Price:</b></label></td>
-                                <td><input type="text" id="purchase" onchange="updateGrowth()"/></td>
-                            </tr>
-                            <tr>
-                                <td><label for="principal"><b>Loan Amount (75%):</b></label></td>
-                                <td><input type="text" id="principal" readonly /></td>
-                            </tr>
-                            <tr>
-                                <td><label for="interest"><b>Current Interest (%):</b></label></td>
-                                <td><input type="text" id="interest" /></td>
-                            </tr>
-                            <tr>
-                                <td><label for="terms"><b>Loan Tenure (Years):</b></label></td>
-                                <td><input type="text" id="terms" /></td>
-                            </tr>
-                            <tr>
-                                <td><label for="holding"><b>Holding Period (Months):</b></label></td>
-                                <td><input type="text" id="holding" /></td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td>
-                        <table class="stylish_table2">
-                            <tr>
-                                <td style="text-align: right;"><b><u>Growth: </u></b></td>
-                                <td>
-                                    <select style="color: #FFF;font-weight: bold;text-decoration: underline;text-shadow: none;" id="growth" onchange="updateGrowth()">
-                                        <option value="2.5">2.5%</option>
-                                        <option value="3">3%</option>
-                                        <option value="5">5%</option>
-                                        <option value="7">7%</option>
-                                        <option value="10">10%</option>
-                                        <option value="12">12%</option>
-                                        <option value="15">15%</option>
-                                        <option value="18">18%</option>
-                                        <option value="20">20%</option>
-                                        <option value="23">23%</option>
-                                        <option value="25">25%</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><label for="purchase2"><b>Purchase Price:</b></label></td>
-                                <td><input type="text" id="purchase2" readonly /></td>
-                            </tr>
-                            <tr>
-                                <td><label for="principal2"><b>Loan Amount (75%):</b></label></td>
-                                <td><input type="text" id="principal2" readonly /></td>
-                            </tr>
-                            <tr>
-                                <td><label for="interest2"><b>Ideal Interest (%):</b></label></td>
-                                <td><input type="text" id="interest2" /></td>
-                            </tr>
-                            <tr>
-                                <td><label for="terms2"><b>Loan Tenure (Years):</b></label></td>
-                                <td><input type="text" id="terms2" /></td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td>
-
-                    </td>
+                    <td style="text-align:center"><b><u>Today</u></b></td>
+                    <td style="text-align:center">VS</td>
+                    <td style="text-align:center">New Launch</td>
                 </tr>
+                <tr>
+                    <td><input type="text" style="text-align:center" id="purchase" onchange="updateGrowth()"/></td>
+                    <td style="text-align:center"><label for="purchase"><b>Purchase Price</b></label></td>
+                    <td><input type="text" id="vspurchase" style="text-align:center" readonly/></td>
+                </tr>
+                <tr>
+                    <td><input type="text" style="text-align:center" id="resaleBankInterest" readonly /></td>
+                    <td style="text-align:center"><label ><b>Bank Interest</b></label></td>
+                    <td><input type="text" style="text-align:center" id="nlBankInterest" readonly /></td>
+                </tr>
+                <tr>
+                    <td><input type="text" style="text-align:center" id="resaleMCST" value="0.00" /></td>
+                    <td style="text-align:center"><label ><b>MCST</b></label></td>
+                    <td><input type="text" style="text-align:center" value="0.00" readonly /></td>
+                </tr>
+                <tr>
+                    <td><input type="text" style="text-align:center" value="0.00" readonly /></td>
+                    <td style="text-align:center"><label ><b>Rental</b></label></td>
+                    <td><input type="text" style="text-align:center" id="resaleMCST" value="0.00" /></td>
+                </tr>
+                <tr>
+                    <td><input type="text" style="text-align:center" id="resalePropertyTax" value="0.00" /></td>
+                    <td style="text-align:center"><label ><b>Property Tax</b></label></td>
+                    <td><input type="text" style="text-align:center" value="0.00" readonly /></td>
+                </tr>
+                <tr>
+                    <td><input type="text" style="text-align:center" id="resaleMonthlyTotal" readonly value="0.00" /></td>
+                    <td style="text-align:center"><label ><b>Total Cost Per Month</b></label></td>
+                    <td><input type="text" style="text-align:center" id="nlMonthlyTotal" readonly value="0.00" /></td>
+                </tr>
+                <tr>
+                    <td><input type="text" style="text-align:center" id="resaleCostTotal" readonly value="0.00" /></td>
+                    <td style="text-align:center"><label ><b>Total Cost</b></label></td>
+                    <td><input type="text" style="text-align:center" id="nlCostTotal" readonly value="0.00" /></td>
+                </tr>
+                <tr>
+                    <td><input type="text" style="text-align:center" id="resaleBSD" readonly value="0.00" /></td>
+                    <td style="text-align:center"><label ><b>BSD</b></label></td>
+                    <td><input type="text" style="text-align:center" id="nlBSD" readonly value="0.00" /></td>
+                </tr>
+                <tr>
+                    <td><input type="text" style="text-align:center" id="resaleABSD" readonly value="0.00" /></td>
+                    <td style="text-align:center"><label ><b>ABSD</b></label></td>
+                    <td><input type="text" style="text-align:center" id="nlABSD" readonly value="0.00" /></td>
+                </tr>
+                <tr>
+                    <td><input type="text" style="text-align:center" id="resaleRenovation" value="0.00" /></td>
+                    <td style="text-align:center"><label ><b>Renovation</b></label></td>
+                    <td><input type="text" style="text-align:center" id="nlRenovation" readonly value="0.00" /></td>
+                </tr>
+                <tr>
+                    <td><input type="text" style="text-align:center" id="resaleBreakEven" value="0.00" /></td>
+                    <td style="text-align:center"><label ><b>Breakeven Price</b></label></td>
+                    <td><input type="text" style="text-align:center" id="nlBreakEven" readonly value="0.00" /></td>
+                </tr>
+                
             </table>
+                        
             <input type="button" value="Calculate" class="toHide" style="margin-top: 20px;font-size: 16px;background: #0a4545;color: #FFF;border: 0;padding: 10px;" onclick="getValues()" />
         </fieldset>
         
