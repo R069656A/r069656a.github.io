@@ -308,6 +308,8 @@
                 for (let i = 0; i < appreciation_amounts.length; i++) {
                     if (getAmount(appreciation_amounts[i].innerHTML) < 0){
                         appreciation_amounts[i].style = "color:red";
+                    } else {
+                        appreciation_amounts[i].style = "color:green";
                     }
                 }
 
@@ -482,7 +484,7 @@
 
                 var heading = document.createElement("h1");
                 heading.id = "password_prompt_heading";
-                heading.innerHTML = "Interest Rate vs Price Increase";
+                heading.innerHTML = "Resale vs New Launch";
                 div.appendChild(heading);
 
                 var label = document.createElement("label");
