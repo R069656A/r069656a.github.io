@@ -28,9 +28,10 @@
             /* .stylish_table2 td:first-child{background-color:#753c81;color:#FFF;} */
             /* .stylish_table2 tr:nth-child(even) td:first-child{background-color:#813c3c;}
             .stylish_table2 tr:nth-child(even) td:last-child{background-color:#ccc;} */
-            .stylish_table2 td { padding:2px;font-size: 16px; }
+            .stylish_table2 td { padding:2px;font-size: 16px;border: 1px dotted #333; }
             select,input[type="text"]{font-size:16px;background:none;border:0;width:100%;}
             .container_table > tbody > tr > td { padding:8px; }
+            select, input[type="text"]:not(:read-only) {background-color: yellow;}
             @media print{.toHide{display:none;}}
         </style>
         <script>
@@ -51,26 +52,16 @@
             function updateGrowth ( ) {
                 var purchase = getAmount(document.getElementById("purchase").value);
                 document.getElementById("vspurchase").value = numberWithCommas(purchase);
-                var growthPercent = getAmount(document.getElementById("growth").value);
-                document.getElementById("principal").value = numberWithCommas(purchase*0.75);
-                document.getElementById("principal2").value = numberWithCommas(purchase2*0.75);
-                document.getElementById("purchase").value = numberWithCommas(purchase);
-                saveInputs();
+                getValues();
             }
 
             function getValues() {
                 //button click gets values from inputs
                 var purchase = getAmount(document.getElementById("purchase").value);
-                var balance = getAmount(document.getElementById("principal").value);
-                var interestRate = getAmount(document.getElementById("interest").value)/100.0;
-                var terms = getAmount(document.getElementById("terms").value) * 12;
-
-                var purchase2 = getAmount(document.getElementById("purchase2").value);
-                var balance2 = getAmount(document.getElementById("principal2").value);
-                var interestRate2 = getAmount(document.getElementById("interest2").value)/100.0;
-                var terms2 = getAmount(document.getElementById("terms2").value) * 12;
-
-                var holding = getAmount(document.getElementById("holding").value);
+                // var balance = getAmount(document.getElementById("principal").value);
+                var interestRate = getAmount(document.getElementById("interestRate").value)/100.0;
+                var holding = getAmount(document.getElementById("holding_period_years").value) * 12;
+                document.getElementById("holding_period_months").innerHTML = holding;
                 
                 //set the div string
                 var div = document.getElementById("Result");
@@ -78,6 +69,9 @@
                 //in case of a re-calc, clear out the div!
                 div.innerHTML = "";
                 
+                var balance = 0.75*purchase; // wk to edit
+                var terms = 25 * 12; // wk to edit
+
                 //validate inputs - display error if invalid, otherwise, display table
                 var balVal = validateInputs(balance);
                 var intrVal = validateInputs(interestRate);
@@ -85,6 +79,8 @@
                 if (balVal && intrVal) {
                     //Returns div string if inputs are valid
                     div.innerHTML += amort(balance, interestRate, terms, holding);
+                    const total_interests = document.getElementsByClassName("total_interest");
+                    document.getElementById("resaleBankInterest").value = numberWithCommas(getAmount(total_interests[0].innerHTML)/holding);
                 }
                 else {
                     //returns error if inputs are invalid
@@ -97,30 +93,224 @@
                 //in case of a re-calc, clear out the div!
                 div2.innerHTML = "";
                 
-                var balVal2 = validateInputs(balance2);
-                var intrVal2 = validateInputs(interestRate2);
+                var stage1_1 = amort(purchase*0.05, interestRate, terms, 6, true,["Completion of Foundation",5]);
+                div2.innerHTML += stage1_1; // 6 months
+                
+                var stage1_2 = amort(purchase*0.1
+                    +(getAmount(document.querySelector("#result2 .balance6").innerHTML)
+                    -getAmount(document.querySelector("#result2 .monthly_principal6").innerHTML))
+                    , interestRate, terms-6, 6, 6,["Completion of Reinforced Concrete",10]);
+                div2.innerHTML+=stage1_2; // 12 months
+                
+                var stage2_1 = amort(purchase*0.05
+                    +(getAmount(document.querySelector("#result2 .balance12").innerHTML)
+                    -getAmount(document.querySelector("#result2 .monthly_principal12").innerHTML))
+                    , interestRate, terms-12, 6, 12,["Completion of Brick Walls",5]); // 18 months
+                div2.innerHTML+=stage2_1; 
+                
+                var stage2_2 = amort(purchase*0.05
+                    +getAmount(document.querySelector("#result2 .balance18").innerHTML)
+                    -getAmount(document.querySelector("#result2 .monthly_principal18").innerHTML)
+                    , interestRate, terms-18, 6, 18,["Completion of Ceiling / Roofing",5]); // 24 months
+                div2.innerHTML+=stage2_2; 
+                
+                var stage3_1 = amort(purchase*0.05
+                    +getAmount(document.querySelector("#result2 .balance24").innerHTML)
+                    -getAmount(document.querySelector("#result2 .monthly_principal24").innerHTML)
+                    , interestRate, terms-24, 6, 24,["Completion of Electrical Wiring / Plumbing",5]); // 30 months
+                div2.innerHTML+=stage3_1; 
+                
+                var stage3_2 = amort(purchase*0.05
+                    +getAmount(document.querySelector("#result2 .balance30").innerHTML)
+                    -getAmount(document.querySelector("#result2 .monthly_principal30").innerHTML)
+                    , interestRate, terms-30, 6, 30,["Completion of Roads / Car Parks / Drainage",5]); // 36 months
+                div2.innerHTML+=stage3_2; 
+                
+                var stage4 = amort(purchase*0.25
+                    +getAmount(document.querySelector("#result2 .balance36").innerHTML)
+                    -getAmount(document.querySelector("#result2 .monthly_principal36").innerHTML)
+                    , interestRate, terms-36, 12, 36,["Issuance of Temporary Occupation Permit (TOP)",25]); // 48 months
+                div2.innerHTML+=stage4; 
+                
+                var stage5 = amort(purchase*0.15
+                    +getAmount(document.querySelector("#result2 .balance48").innerHTML)
+                    -getAmount(document.querySelector("#result2 .monthly_principal48").innerHTML)
+                    , interestRate, terms-48, 12, 48,["Certificate of Statutory Completion (CSC)",15]); 
+                div2.innerHTML+=stage5; 
 
-                if (balVal2 && intrVal2) {
-                    div2.innerHTML += amort(balance2, interestRate2, terms2, holding);
+                div2.innerHTML = "<h2>Loan Progressive Payment</h2><table class=\"report_table\"><thead><tr><th>Description</th><th>% of purchase price</th><th>Disbursed amt</th><th>Month #</th><th>Balance</th><th>Interest</th><th>Principal</th></tr></thead>" + stage1_1 + stage1_2 + stage2_1 + stage2_2 + stage3_1 + stage3_2 + stage4 + stage5 + "</table>";
+
+                var total_progressive_interest = 0;
+                for (i=0;i<holding;i++) {
+                    total_progressive_interest += getAmount( document.querySelector("#result2 .monthly_interest"+(i+1)).innerHTML);
+                }
+                document.getElementById("nlBankInterest").value = numberWithCommas( total_progressive_interest/holding);
+                
+                document.getElementById("resaleMonthlyTotal").value = numberWithCommas(
+                    getAmount(document.getElementById("resaleBankInterest").value) +
+                    getAmount(document.getElementById("resaleMCST").value) +
+                    getAmount(document.getElementById("resalePropertyTax").value)
+                );
+                
+                document.getElementById("nlMonthlyTotal").value = numberWithCommas(
+                    getAmount(document.getElementById("nlBankInterest").value) +
+                    getAmount(document.getElementById("nlRental").value)
+                );
+
+                document.getElementById("resaleCostTotal").value = numberWithCommas(
+                    getAmount(document.getElementById("resaleMonthlyTotal").value) * 
+                    getAmount(document.getElementById("holding_period_months").innerHTML) 
+                );
+
+                document.getElementById("nlCostTotal").value = numberWithCommas(
+                    getAmount(document.getElementById("nlMonthlyTotal").value) * 
+                    getAmount(document.getElementById("holding_period_months").innerHTML) 
+                );
+
+                let bsd = 0;
+                if (purchase <= 180000) {
+                    bsd = 0.01*purchase;
+                } else if (purchase > 180000 && purchase <= 360000) {
+                    bsd = 0.02*purchase - 1800;
+                } else if (purchase > 360000 && purchase <= 1000000) {
+                    bsd = 0.03*purchase - 5400;
+                } else if (purchase > 1000000 && purchase <= 1500000) {
+                    bsd = 0.04*purchase - 15400;
+                } else if (purchase > 1500000 && purchase <= 3000000) {
+                    bsd = 0.05*purchase - 30400;
+                } else if (purchase > 3000000) {
+                    bsd = 0.06*purchase - 60400;
+                }
+                bsd = Math.floor(bsd);
+
+                document.getElementById("resaleBSD").value = numberWithCommas(bsd);
+                document.getElementById("nlBSD").value = numberWithCommas(bsd);
+
+                var absd_rate = 0;
+
+                var s_property_count = document.getElementById("property_count");
+                var s_nationality = document.getElementById("nationality");
+                var property_count = s_property_count.value;
+                var nationality = s_nationality.value;
+                
+                if (nationality == "sc") {
+                    if (property_count == "2") {
+                        absd_rate = 0.2;
+                    }
+                    if (property_count == "3") {
+                        absd_rate = 0.3;
+                    }
+                }
+                
+                if (nationality == "spr") {
+                    if (property_count == "1") {
+                        absd_rate = 0.05;
+                    }
+                    if (property_count == "2") {
+                        absd_rate = 0.3;
+                    }
+                    if (property_count == "3") {
+                        absd_rate = 0.35;
+                    }
+                }
+                
+                if (nationality == "for") {
+                    absd_rate = 0.6;
+                }
+                
+                document.getElementById("resaleABSD").value = numberWithCommas(absd_rate*purchase);
+                document.getElementById("nlABSD").value = numberWithCommas(absd_rate*purchase);
+
+                document.getElementById("resaleBreakEven").value=numberWithCommas(
+                    getAmount(document.getElementById("resaleCostTotal").value)+
+                    getAmount(document.getElementById("resaleBSD").value)+
+                    getAmount(document.getElementById("resaleABSD").value)+
+                    getAmount(document.getElementById("resaleRenovation").value) + purchase
+                );
+
+                document.getElementById("nlBreakEven").value=numberWithCommas(
+                    getAmount(document.getElementById("nlCostTotal").value)+
+                    getAmount(document.getElementById("nlBSD").value)+
+                    getAmount(document.getElementById("nlABSD").value) + purchase
+                );
+
+                document.getElementById("appreciation25").innerHTML = "$" + numberWithCommas(
+                    purchase+=0.025*purchase
+                )
+                document.getElementById("resaleProfit25").innerHTML = numberWithCommas(
+                    (getAmount(document.getElementById("appreciation25").innerHTML) - getAmount(document.getElementById("resaleBreakEven").value)) / getAmount(document.getElementById("resaleBreakEven").value) * 100 
+                )+"%";
+                document.getElementById("nlProfit25").innerHTML = numberWithCommas(
+                    (getAmount(document.getElementById("appreciation25").innerHTML) - getAmount(document.getElementById("nlBreakEven").value)) / getAmount(document.getElementById("nlBreakEven").value) * 100 
+                )+"%";
+
+                document.getElementById("appreciation5").innerHTML = "$" + numberWithCommas(
+                    purchase+=0.05*purchase
+                )
+                document.getElementById("resaleProfit5").innerHTML = numberWithCommas(
+                    (getAmount(document.getElementById("appreciation5").innerHTML) - getAmount(document.getElementById("resaleBreakEven").value)) / getAmount(document.getElementById("resaleBreakEven").value) * 100 
+                )+"%";
+                document.getElementById("nlProfit5").innerHTML = numberWithCommas(
+                    (getAmount(document.getElementById("appreciation5").innerHTML) - getAmount(document.getElementById("nlBreakEven").value)) / getAmount(document.getElementById("nlBreakEven").value) * 100 
+                )+"%";
+
+                document.getElementById("appreciation10").innerHTML = "$" + numberWithCommas(
+                    purchase+=0.05*purchase
+                )
+                document.getElementById("resaleProfit10").innerHTML = numberWithCommas(
+                    (getAmount(document.getElementById("appreciation10").innerHTML) - getAmount(document.getElementById("resaleBreakEven").value)) / getAmount(document.getElementById("resaleBreakEven").value) * 100 
+                )+"%";
+                document.getElementById("nlProfit10").innerHTML = numberWithCommas(
+                    (getAmount(document.getElementById("appreciation10").innerHTML) - getAmount(document.getElementById("nlBreakEven").value)) / getAmount(document.getElementById("nlBreakEven").value) * 100 
+                )+"%";
+
+                document.getElementById("appreciation15").innerHTML = "$" + numberWithCommas(
+                    purchase+=0.05*purchase
+                )
+                document.getElementById("resaleProfit15").innerHTML = numberWithCommas(
+                    (getAmount(document.getElementById("appreciation15").innerHTML) - getAmount(document.getElementById("resaleBreakEven").value)) / getAmount(document.getElementById("resaleBreakEven").value) * 100 
+                )+"%";
+                document.getElementById("nlProfit15").innerHTML = numberWithCommas(
+                    (getAmount(document.getElementById("appreciation15").innerHTML) - getAmount(document.getElementById("nlBreakEven").value)) / getAmount(document.getElementById("nlBreakEven").value) * 100 
+                )+"%";
+
+                document.getElementById("appreciation20").innerHTML = "$" + numberWithCommas(
+                    purchase+=0.05*purchase
+                )
+                document.getElementById("resaleProfit20").innerHTML = numberWithCommas(
+                    (getAmount(document.getElementById("appreciation20").innerHTML) - getAmount(document.getElementById("resaleBreakEven").value)) / getAmount(document.getElementById("resaleBreakEven").value) * 100 
+                )+"%";
+                document.getElementById("nlProfit20").innerHTML = numberWithCommas(
+                    (getAmount(document.getElementById("appreciation20").innerHTML) - getAmount(document.getElementById("nlBreakEven").value)) / getAmount(document.getElementById("nlBreakEven").value) * 100 
+                )+"%";
+
+                document.getElementById("appreciation250").innerHTML = "$" + numberWithCommas(
+                    purchase+=0.05*purchase
+                )
+                document.getElementById("resaleProfit250").innerHTML = numberWithCommas(
+                    (getAmount(document.getElementById("appreciation250").innerHTML) - getAmount(document.getElementById("resaleBreakEven").value)) / getAmount(document.getElementById("resaleBreakEven").value) * 100 
+                )+"%";
+                document.getElementById("nlProfit250").innerHTML = numberWithCommas(
+                    (getAmount(document.getElementById("appreciation250").innerHTML) - getAmount(document.getElementById("nlBreakEven").value)) / getAmount(document.getElementById("nlBreakEven").value) * 100 
+                )+"%";
+
+                document.getElementById("appreciation30").innerHTML = "$" + numberWithCommas(
+                    purchase+=0.05*purchase
+                )
+                document.getElementById("resaleProfit30").innerHTML = numberWithCommas(
+                    (getAmount(document.getElementById("appreciation30").innerHTML) - getAmount(document.getElementById("resaleBreakEven").value)) / getAmount(document.getElementById("resaleBreakEven").value) * 100 
+                )+"%";
+                document.getElementById("nlProfit30").innerHTML = numberWithCommas(
+                    (getAmount(document.getElementById("appreciation30").innerHTML) - getAmount(document.getElementById("nlBreakEven").value)) / getAmount(document.getElementById("nlBreakEven").value) * 100 
+                )+"%";
+
+                const appreciation_amounts = document.getElementsByClassName("appreciation_amount");
+                for (let i = 0; i < appreciation_amounts.length; i++) {
+                    if (getAmount(appreciation_amounts[i].innerHTML) < 0){
+                        appreciation_amounts[i].style = "color:red";
+                    }
                 }
 
-                const total_interests = document.getElementsByClassName("total_interest");
-                let additional_interest = numberWithCommas( getAmount( total_interests[0].innerHTML)-getAmount(total_interests[1].innerHTML));
-                let price_difference = numberWithCommas(purchase2-purchase);
-                
-                let amount_saved = ( getAmount( price_difference)-getAmount( additional_interest));
-
-                var summary = document.getElementById("summary");
-                summary_html = "<table class=\"stylish_table\">";
-                summary_html += 
-                    `<tr><td>Holding Period:</td><td>${holding} months</td>
-                    </tr><tr><td>Additional Interest: </td><td><b>$${additional_interest}</b></td></tr>
-                    <tr><td>Price Difference: </td><td><b>$${price_difference}</b></td></tr>
-                    <tr class="${(amount_saved>0) ?"positive_r":"negative_r" }"><td><b>Amount saved:</b></td><td><b>$${numberWithCommas( amount_saved)}</b></td></td>
-                    `;
-                summary_html += "</table><br/>Disclaimer: Report for illustration purposes only. Actual figures will vary.";
-                summary.innerHTML = summary_html;
-                
                 saveInputs();
             }
 
@@ -129,7 +319,7 @@
              * Calculates the necessary elements of the loan using the supplied user input
              * and then displays each months updated amortization schedule on the page
             */
-            function amort(balance, interestRate, terms, holding=18) {
+            function amort(balance, interestRate, terms, holding=18, isProgressive=false, description) {
                 //Calculate the per month interest rate
                 var monthlyRate = interestRate/12;
                 
@@ -138,18 +328,27 @@
                     1+monthlyRate, -terms)));
                     
                 //begin building the return string for the display of the amort table
-                var result = "<table class=\"stylish_table\">" +
-                    "<tr><td>Loan amount:</td><td> $" + numberWithCommas(balance) +  "</td></tr>" + 
-                    "<tr><td>Interest rate:</td><td> " + (interestRate*100).toFixed(2) +  "%</td></tr>" +
-                    "<tr><td>Number of months:</td><td> " + terms + "</td></tr>" +
-                    "<tr><td>Monthly payment:</td><td> $" + numberWithCommas(payment) + "</td></tr>" +
-                    "<tr><td>Total paid:</td><td> $" + numberWithCommas(payment * terms) + "</td></tr>";
+                var result = "";
+                
+                if (!isProgressive) {
+                    result += "<table class=\"stylish_table\">" +
+                        "<tr><td>Loan amount:</td><td> $" + numberWithCommas(balance) +  "</td></tr>" + 
+                        "<tr><td>Interest rate:</td><td> " + (interestRate*100).toFixed(2) +  "%</td></tr>" +
+                        "<tr><td>Number of months:</td><td> " + terms + "</td></tr>" +
+                        "<tr><td>Monthly payment:</td><td> $" + numberWithCommas(payment) + "</td></tr>" +
+                        "<tr><td>Total paid:</td><td> $" + numberWithCommas(payment * terms) + "</td></tr>";
+                }
                     
                 var holdingInterest = 0;
+                var holdingPrincipal = 0;
 
                 //add header row for table to return string
-                var result2 = "<table class=\"report_table\"><thead><tr><th>Month #</th><th>Balance</th>" + 
-                    "<th>Interest</th><th>Principal</th></tr></thead>";
+                var result2 = "";
+                
+                if (!isProgressive) {
+                    result2 += "<table class=\"report_table\"><thead><tr><th>Month #</th><th>Balance</th>" + 
+                        "<th>Interest</th><th>Principal</th></tr></thead>";
+                }
                 
                 /**
                  * Loop that calculates the monthly Loan amortization amounts then adds 
@@ -161,24 +360,35 @@
                     
                     //in-loop monthly principal amount holder
                     var monthlyPrincipal = 0;
-                    
+
                     //start a new table row on each loop iteration
                     result2 += "<tr align=center>";
                     
+                    if (isProgressive && count == 0) {
+                        result2 += '<td style="vertical-align: middle;" rowspan="'+holding+'">'+description[0]+'</td>';
+                        result2 += '<td style="vertical-align: middle;" rowspan="'+holding+'">'+description[1]+'%</td>';
+                        result2 += '<td style="vertical-align: middle;" rowspan="'+holding+'">$'+numberWithCommas(parseInt( description[1])/100*getAmount(document.getElementById("purchase").value))+'</td>';
+                    }
+
+                    var monthNumber = count + 1;
+                    if (typeof isProgressive === 'number') {
+                        monthNumber += isProgressive;
+                    }
+
                     //display the month number in col 1 using the loop count variable
-                    result2 += "<td>" + (count + 1) + "</td>";
+                    result2 += "<td>" + monthNumber + "</td>";
                     
                     
                     //code for displaying in loop balance
-                    result2 += "<td> $" + numberWithCommas( balance) + "</td>";
+                    result2 += "<td> $<span class=\"balance"+monthNumber+"\">" + numberWithCommas( balance) + "<span></td>";
                     
                     //calc the in-loop interest amount and display
                     interest = balance * monthlyRate;
-                    result2 += "<td> $" + numberWithCommas(interest) + "</td>";
+                    result2 += "<td> $<span class=\"monthly_interest"+monthNumber+"\">" + numberWithCommas(interest) + "</span></td>";
                     
                     //calc the in-loop monthly principal and display
                     monthlyPrincipal = payment - interest;
-                    result2 += "<td> $" + numberWithCommas(monthlyPrincipal) + "</td>";
+                    result2 += "<td> $<span class=\"monthly_principal"+monthNumber+"\">" + numberWithCommas(monthlyPrincipal) + "</span></td>";
                     
                     //end the table row on each iteration of the loop	
                     result2 += "</tr>";
@@ -188,14 +398,24 @@
                     
                     if (count<holding){
                         holdingInterest += interest;
+                        holdingPrincipal += monthlyPrincipal;
+                    }
+
+                    if (isProgressive && count == holding-1) {
+                        break;
                     }
                 }
                 
-                //Final piece added to return string before returning it - closes the table
-                result2 += "</table>";
+                if (!isProgressive) {
+                    //Final piece added to return string before returning it - closes the table
+                    result2 += "</table>";
+                }
 
+                if (!isProgressive) {
                 result += "<tr><td>Interest ("+holding+" months):</td><td> $<span class=\"total_interest\">" + numberWithCommas(holdingInterest) + "</span></td></tr>"+
+                "<tr><td>Principal ("+holding+" months):</td><td> $<span class=\"total_principal\">" + numberWithCommas(holdingPrincipal) + "</span></td></tr>"+
                     "</table><br/>";
+                }
                 
                 //returns the concatenated string to the page
                 return result + result2;
@@ -298,80 +518,164 @@
     <body>
         <fieldset>
             <legend>Resale vs New Launch</legend>
-            <table class="stylish_table2" style="table-layout:fixed;">
+            <table style="border-collapse: collapse;">
                 <tr>
-                    <td style="text-align:center"><b><u>Today</u></b></td>
-                    <td style="text-align:center">VS</td>
-                    <td style="text-align:center">New Launch</td>
-                </tr>
-                <tr>
-                    <td><input type="text" style="text-align:center" id="purchase" onchange="updateGrowth()"/></td>
-                    <td style="text-align:center"><label for="purchase"><b>Purchase Price</b></label></td>
-                    <td><input type="text" id="vspurchase" style="text-align:center" readonly/></td>
-                </tr>
-                <tr>
-                    <td><input type="text" style="text-align:center" id="resaleBankInterest" readonly /></td>
-                    <td style="text-align:center"><label ><b>Bank Interest</b></label></td>
-                    <td><input type="text" style="text-align:center" id="nlBankInterest" readonly /></td>
-                </tr>
-                <tr>
-                    <td><input type="text" style="text-align:center" id="resaleMCST" value="0.00" /></td>
-                    <td style="text-align:center"><label ><b>MCST</b></label></td>
-                    <td><input type="text" style="text-align:center" value="0.00" readonly /></td>
-                </tr>
-                <tr>
-                    <td><input type="text" style="text-align:center" value="0.00" readonly /></td>
-                    <td style="text-align:center"><label ><b>Rental</b></label></td>
-                    <td><input type="text" style="text-align:center" id="resaleMCST" value="0.00" /></td>
-                </tr>
-                <tr>
-                    <td><input type="text" style="text-align:center" id="resalePropertyTax" value="0.00" /></td>
-                    <td style="text-align:center"><label ><b>Property Tax</b></label></td>
-                    <td><input type="text" style="text-align:center" value="0.00" readonly /></td>
-                </tr>
-                <tr>
-                    <td><input type="text" style="text-align:center" id="resaleMonthlyTotal" readonly value="0.00" /></td>
-                    <td style="text-align:center"><label ><b>Total Cost Per Month</b></label></td>
-                    <td><input type="text" style="text-align:center" id="nlMonthlyTotal" readonly value="0.00" /></td>
-                </tr>
-                <tr>
-                    <td><input type="text" style="text-align:center" id="resaleCostTotal" readonly value="0.00" /></td>
-                    <td style="text-align:center"><label ><b>Total Cost</b></label></td>
-                    <td><input type="text" style="text-align:center" id="nlCostTotal" readonly value="0.00" /></td>
-                </tr>
-                <tr>
-                    <td><input type="text" style="text-align:center" id="resaleBSD" readonly value="0.00" /></td>
-                    <td style="text-align:center"><label ><b>BSD</b></label></td>
-                    <td><input type="text" style="text-align:center" id="nlBSD" readonly value="0.00" /></td>
-                </tr>
-                <tr>
-                    <td><input type="text" style="text-align:center" id="resaleABSD" readonly value="0.00" /></td>
-                    <td style="text-align:center"><label ><b>ABSD</b></label></td>
-                    <td><input type="text" style="text-align:center" id="nlABSD" readonly value="0.00" /></td>
-                </tr>
-                <tr>
-                    <td><input type="text" style="text-align:center" id="resaleRenovation" value="0.00" /></td>
-                    <td style="text-align:center"><label ><b>Renovation</b></label></td>
-                    <td><input type="text" style="text-align:center" id="nlRenovation" readonly value="0.00" /></td>
-                </tr>
-                <tr>
-                    <td><input type="text" style="text-align:center" id="resaleBreakEven" value="0.00" /></td>
-                    <td style="text-align:center"><label ><b>Breakeven Price</b></label></td>
-                    <td><input type="text" style="text-align:center" id="nlBreakEven" readonly value="0.00" /></td>
-                </tr>
-                
-            </table>
+                    <td>
+                        <table class="stylish_table2" style="table-layout:fixed;">
+                        <tr>
+                            <td style="text-align:center;height: 60px;vertical-align: middle;">Resale</td>
+                            <td style="text-align:center;height: 60px;vertical-align: middle;">VS</td>
+                            <td style="text-align:center;height: 60px;vertical-align: middle;">New Launch</td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" style="text-align:center" id="purchase" onchange="updateGrowth()"/></td>
+                            <td style="text-align:center"><label for="purchase"><b>Purchase Price</b></label></td>
+                            <td><input type="text" id="vspurchase" style="text-align:center" readonly/></td>
+                        </tr>
+                        <tr>
+                            <td style="vertical-align: middle;"><input type="text" style="text-align:center" id="resaleBankInterest" readonly /></td>
+                            <td style="text-align:center">
+                                <label ><b>Bank Interest (%)</b></label>
+                                <input id="interestRate" style="text-align:center" type="text" value="2.6"/>
+                            </td>
+                            <td style="vertical-align: middle;"><input type="text" style="text-align:center" id="nlBankInterest" readonly /></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" style="text-align:center" id="resaleMCST" onchange="updateGrowth()" value="0.00" /></td>
+                            <td style="text-align:center"><label ><b>MCST</b></label></td>
+                            <td><input type="text" style="text-align:center" value="0.00" readonly /></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" style="text-align:center" value="0.00" readonly /></td>
+                            <td style="text-align:center"><label ><b>Rental</b></label></td>
+                            <td><input type="text" style="text-align:center" id="nlRental" onchange="updateGrowth()" value="0.00" /></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" style="text-align:center" id="resalePropertyTax" onchange="updateGrowth()" value="0.00" /></td>
+                            <td style="text-align:center"><label ><b>Property Tax</b></label></td>
+                            <td><input type="text" style="text-align:center" value="0.00" readonly /></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" style="text-align:center" id="resaleMonthlyTotal" readonly value="0.00" /></td>
+                            <td style="text-align:center"><label ><b>Total Cost Per Month</b></label></td>
+                            <td><input type="text" style="text-align:center" id="nlMonthlyTotal" readonly value="0.00" /></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center"><label for="holding_period_years"><b>Holding Period (3/4/5 years)</b></label></td>
+                            <td>
+                                <select id="holding_period_years" style="text-align: center;">
+                                    <option>3 years</option>
+                                    <option>4 years</option>
+                                    <option>5 years</option>
+                                </select>
+                            </td>
+                            <td><div style="text-align: center;"><span id="holding_period_months">36</span> months</div></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" style="text-align:center" id="resaleCostTotal" readonly value="0.00" /></td>
+                            <td style="text-align:center"><label ><b>Total Cost</b></label></td>
+                            <td><input type="text" style="text-align:center" id="nlCostTotal" readonly value="0.00" /></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" style="text-align:center" id="resaleBSD" readonly value="0.00" /></td>
+                            <td style="text-align:center"><label ><b>BSD</b></label></td>
+                            <td><input type="text" style="text-align:center" id="nlBSD" readonly value="0.00" /></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" style="text-align:center" id="resaleABSD" readonly value="0.00" /></td>
+                            <td style="text-align:center"><label ><b>ABSD</b></label></td>
+                            <td><input type="text" style="text-align:center" id="nlABSD" readonly value="0.00" /></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" style="text-align:center" id="resaleRenovation" onchange="updateGrowth()" value="0.00" /></td>
+                            <td style="text-align:center"><label ><b>Renovation</b></label></td>
+                            <td><input type="text" style="text-align:center" readonly value="0.00" /></td>
+                        </tr>
+                        <tr>
+                            <td><input type="text" style="text-align:center" id="resaleBreakEven" readonly value="0.00" /></td>
+                            <td style="text-align:center"><label ><b>Breakeven Price</b></label></td>
+                            <td><input type="text" style="text-align:center" id="nlBreakEven" readonly value="0.00" /></td>
+                        </tr>
                         
-            <input type="button" value="Calculate" class="toHide" style="margin-top: 20px;font-size: 16px;background: #0a4545;color: #FFF;border: 0;padding: 10px;" onclick="getValues()" />
+                    </table>
+                    <br/>
+                    <table style="table-layout: fixed;" class="stylish_table2">
+                        <tr><td colspan="3" style="text-align: center;height: 60px;vertical-align: middle;"> Assume Appreciation</td></tr>
+                        <tr>
+                            <td style="text-align: center;vertical-align: middle;"><div id="resaleProfit25" class="appreciation_amount"></div></td>
+                            <td style="text-align: center;vertical-align: middle;">2.5%<div id="appreciation25"></div></td>
+                            <td style="text-align: center;vertical-align: middle;"><div id="nlProfit25"class="appreciation_amount"></div></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;vertical-align: middle;"><div id="resaleProfit5"class="appreciation_amount"></div></td>
+                            <td style="text-align: center;vertical-align: middle;">5%<div id="appreciation5"></div></td>
+                            <td style="text-align: center;vertical-align: middle;"><div id="nlProfit5"class="appreciation_amount"></div></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;vertical-align: middle;"><div id="resaleProfit10"class="appreciation_amount"></div></td>
+                            <td style="text-align: center;vertical-align: middle;">10%<div id="appreciation10"></div></td>
+                            <td style="text-align: center;vertical-align: middle;"><div id="nlProfit10"class="appreciation_amount"></div></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;vertical-align: middle;"><div id="resaleProfit15"class="appreciation_amount"></div></td>
+                            <td style="text-align: center;vertical-align: middle;">15%<div id="appreciation15"></div></td>
+                            <td style="text-align: center;vertical-align: middle;"><div id="nlProfit15"class="appreciation_amount"></div></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;vertical-align: middle;"><div id="resaleProfit20"class="appreciation_amount"></div></td>
+                            <td style="text-align: center;vertical-align: middle;">20%<div id="appreciation20"></div></td>
+                            <td style="text-align: center;vertical-align: middle;"><div id="nlProfit20"class="appreciation_amount"></div></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;vertical-align: middle;"><div id="resaleProfit250"class="appreciation_amount"></div></td>
+                            <td style="text-align: center;vertical-align: middle;">25%<div id="appreciation250"></div></td>
+                            <td style="text-align: center;vertical-align: middle;"><div id="nlProfit250"class="appreciation_amount"></div></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center;vertical-align: middle;"><div id="resaleProfit30"class="appreciation_amount"></div></td>
+                            <td style="text-align: center;vertical-align: middle;">30%<div id="appreciation30"></div></td>
+                            <td style="text-align: center;vertical-align: middle;"><div id="nlProfit30"class="appreciation_amount"></div></td>
+                        </tr>
+                    </table>
+                </td>
+                    <td style="padding-left:20px;">
+                        <table style="width: 280px;">
+                            <tr>
+                                <td>Property Count</td>
+                                <td>
+                                    <select id="property_count" onchange="updateGrowth()">
+                                        <option value="1">1st</option>
+                                        <option value="2">2nd</option>
+                                        <option value="3">3rd and subsequent</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Nationality</td>
+                                <td>
+                                    <select id="nationality" onchange="updateGrowth()">
+                                        <option value="sc">SC</option>
+                                        <option value="spr">SPR</option>
+                                        <option value="for">Foreigner</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <input type="button" value="Calculate" class="toHide" style="margin-top: 20px;font-size: 16px;background: #0a4545;color: #FFF;border: 0;padding: 10px;" onclick="getValues()" />
+                    </td>
+                </tr>
+            </table>
+            
         </fieldset>
         
         <fieldset>
             <legend>Outputs</legend>
-            <table class="container_table" style="width:100%;table-layout: fixed;border-collapse: collapse;">
+            <table class="container_table" style="width:100%;/*table-layout: fixed;*/border-collapse: collapse;">
                 <tr>
                     <td><div id="Result"></div></td>
                     <td><div id="Result2"></div></td>
-                    <td><div id="summary"></div></td>
+                    <!-- <td><div id="summary"></div></td> -->
                 </tr>
             </table>
         </fieldset>	
@@ -396,7 +700,7 @@
                         }
                     }
                     updateGrowth();
-                    getValues();
+                    // getValues();
                 }
             }
         </script>
