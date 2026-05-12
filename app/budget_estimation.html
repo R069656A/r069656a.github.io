@@ -143,7 +143,12 @@
 
                 <div class="form-group">
                   <label for="est_purchase_price">Est Purchase Price</label>
-                  <input class="form-control" id="est_purchase_price"  onchange="estimateBudget()">
+                  <input class="form-control" id="est_purchase_price" onchange="estimateBudget()">
+                </div>
+
+                <div class="form-group">
+                  <label for="est_valuation" class="d-flex justify-content-between align-items-center">Valuation <button onclick="document.getElementById('est_valuation').value=document.getElementById('est_purchase_price').value; estimateBudget()" class="btn badge badge-info">Same as Purchase Price</button></label>
+                  <input class="form-control" id="est_valuation" onchange="estimateBudget()">
                 </div>
                 <div class="form-group">
                   <div class="custom-control custom-switch">
@@ -341,6 +346,9 @@
 
                 function breakdown() {
                   var purchase_price = getAmount(document.getElementById("est_purchase_price").value);
+                  var valuation = getAmount(document.getElementById("est_valuation").value);
+                  valuation = (valuation<purchase_price) ? valuation : purchase_price;
+                  
                   var cashProceeds = getAmount(document.getElementById("cashProceeds").value);
                   var usableOA = getAmount(document.getElementById("usableOA").value);
                   var usableCash = getAmount(document.getElementById("usableCash").value);
@@ -360,45 +368,54 @@
                   var agency_fee_buy = getAmount(document.getElementById("agency_fee_buy").value);
 
                   // Loan Used:
-                  var usableLoan = 0.75*purchase_price;
+                  var usableLoan = 0.75*valuation;
                   if (loanAmount < usableLoan){ // make sure loan amount lesser than 75%
                     usableLoan = loanAmount;
                   }
 
                   var overrall_cash_used = 0; // start counting
-                  // var purchaseOA = 0; // OA used for purchase
-                  // var purchaseCash = 0; // cash used for purchase
                   // CPF used - expenses
                   var cpf_used_expenses = bsd + legal_fee_selling + legal_fee_buying;
                   var cash_used_expenses = option_fee+exercise_fee+reqValuation+resale_application_sell+resale_application_buy+agency_fee_sell+agency_fee_buy;
-                  var used_oa = usableOA;
+                  var balance_oa = usableOA;
+                  var cpf_used_purchase = 0
 
-                  if (cpf_used_expenses < usableOA) {
-                    used_oa -= cpf_used_expenses;
+                  if (cpf_used_expenses < balance_oa) {
+                    balance_oa -= cpf_used_expenses;
                   } else {
                     cpf_used_expenses = 0
                     cash_used_expenses += cpf_used_expenses;
                     overrall_cash_used += cpf_used_expenses;
-                  }
+                  } // minus expenses
 
-                  var shortfall = purchase_price - usableLoan;
+                  var shortfall = valuation - usableLoan; // cash portion of the valuation
                   var loan_type_select_e = document.getElementById("loan_type_select");
                   var loan_type_text = loan_type_select_e.options[loan_type_select_e.selectedIndex].text;
+
                   if (loan_type_text == 'Bank'){ // 5% has to be cash
-                    if (shortfall-(0.05*purchase_price) < used_oa) {
-                      used_oa = shortfall-(0.05*purchase_price);
+                    if (shortfall-(0.05*valuation) < balance_oa) {
+                      cpf_used_purchase = shortfall-(0.05*valuation); 
+                      // use cpf for the rest of shortfall
+                    } else { 
+                      cpf_used_purchase = balance_oa;
+                    }
+                  } else { // hdb
+                    if (shortfall < balance_oa) {
+                      cpf_used_purchase = shortfall; 
+                      // use cpf for the rest of shortfall
+                    } else { // shortfall more than balance
+                      cpf_used_purchase = balance_oa;
                     }
                   }
-                  if (shortfall < used_oa) {
-                    used_oa = shortfall; // use up all the OA
-                    shortfall = 0
-                  } else {
-                    shortfall -= used_oa;
-                  }
-                  
+
+                  var cov = purchase_price-valuation;
+
+                  balance_oa -= cpf_used_purchase; // what remains
+                  shortfall -= cpf_used_purchase; // cash portion after cpf                  
                   
                   overrall_cash_used += cash_used_expenses
                   overrall_cash_used += shortfall
+                  overrall_cash_used += cov;
 
                   // TO DO:
                   /*
@@ -413,35 +430,48 @@
                   */
 
                   var html = `<h6 class="card-title">Total Available Funds</h6>`;
-                  html += `<p>CPF OA:<br/>$${numberWithCommas(usableOA)}</p>`
-                  html += `<p>Cash:<br/>$${numberWithCommas(usableCash+cashProceeds)}</p>`
+                  html += `<p class="text-success mb-0">CPF OA: $${numberWithCommas(usableOA)}</p>`
+                  html += `<p class="text-info">Cash: $${numberWithCommas(usableCash+cashProceeds)}</p>`
+
+                  html += `<hr/>`
 
                   // purchase 
                   html += `<h6 class="card-title">Property Payment</h6>`
-                  html += `<p>Purchase Price:<br/>$${numberWithCommas(purchase_price)}</p>`
-                  html += `<p>Loan Amount:<br/>$${numberWithCommas(usableLoan)} (${numberWithCommas(usableLoan/purchase_price*100)}%)</p>`
-                  html += `<p>CPF OA:<br/>$${numberWithCommas(used_oa)} (${numberWithCommas(used_oa/purchase_price*100)}%)</p>`
-                  html += `<p>Cash:<br/>$${numberWithCommas(shortfall)} (${numberWithCommas(shortfall/purchase_price*100)}%)</p>`
+                  html += `<p class=" mb-0">Purchase Price: $${numberWithCommas(purchase_price)}</p>`
+                  html += `<p class="text-primary mb-0">Loan Amount: $${numberWithCommas(usableLoan)} (${numberWithCommas(usableLoan/valuation*100)}%)</p>`
+                  html += `<p class="text-success mb-0">CPF OA: $${numberWithCommas(cpf_used_purchase)} (${numberWithCommas(cpf_used_purchase/valuation*100)}%)</p>`
+                  html += `<p class="text-info mb-0">Cash: $${numberWithCommas(shortfall)} (${numberWithCommas(shortfall/valuation*100)}%)</p>`
+                  if (cov > 0) {
+                    html += `<p class="text-info">Cash over Valuation: $${numberWithCommas(cov)}</p>`
+                  }
+
+                  html += `<hr/>`
 
                   // expenses
                   html += `<h6 class="card-title">Total Expenses</h6>`
-                  html += `<p>CPF OA:<br/>$${numberWithCommas(cpf_used_expenses)}</p>`
-                  html += `<p>Cash:<br/>$${numberWithCommas(cash_used_expenses)}</p>`
+                  html += `<p class="text-success mb-0">CPF OA: $${numberWithCommas(cpf_used_expenses)}</p>`
+                  html += `<p class="text-info">Cash: $${numberWithCommas(cash_used_expenses)}</p>`
+
+                  html += `<hr/>`
 
                   // balance
                   html += `<h6 class="card-title">Balance</h6>`
-                  html += `<p>CPF OA:<br/>$${numberWithCommas(usableOA-used_oa)}</p>`
+                  html += `<p class="text-success mb-0">CPF OA: $${numberWithCommas(balance_oa)}</p>`
+                  if (balance_oa > 0) {
+                    html += `<div class="alert alert-primary">You may consider taking a smaller loan.</div>`
+                  }
                   if (usableCash+cashProceeds > overrall_cash_used) {
-                    html += `<p class="bg-success">Cash:<br/>$${numberWithCommas(usableCash+cashProceeds-overrall_cash_used)}</p>`
+                    html += `<p class="bg-success">Cash: $${numberWithCommas(usableCash+cashProceeds-overrall_cash_used)}</p>`
                   } else {
-                    html += `<p class="bg-danger">Cash:<br/>$${numberWithCommas(usableCash+cashProceeds-overrall_cash_used)}</p>`
-                    html += `<div class="alert alert-danger">More cash needed! </div>`
+                    html += `<p class="bg-danger">Cash: $${numberWithCommas(usableCash+cashProceeds-overrall_cash_used)}</p>`
+                    html += `<div class="alert alert-danger">More cash needed. </div>`
                   }
 
                   // print
                   document.getElementById("breakdown_content").innerHTML = html;
 
-                  console.log("cpf available",numberWithCommas(cpf_used_expenses+used_oa))
+                  // testing
+                  console.log("cpf available",numberWithCommas(cpf_used_expenses+cpf_used_purchase))
                   console.log("cash available",numberWithCommas(usableCash+cashProceeds))
 
                   console.log("overrall_cash_used",numberWithCommas(overrall_cash_used))
@@ -449,11 +479,11 @@
                   console.log("total cash used for expenses",numberWithCommas(cash_used_expenses))
 
                   console.log("cash for purchase",numberWithCommas(shortfall)) // cash for purchase
-                  console.log("oa for purchase",numberWithCommas(used_oa)) // OA for purchase
+                  console.log("oa for purchase",numberWithCommas(cpf_used_purchase)) // OA for purchase
                   console.log("Loan used", numberWithCommas(usableLoan)) // Loan used
 
                   console.log("purchase price", numberWithCommas(purchase_price)) // purchase_price
-                  console.log("purchase price", numberWithCommas(shortfall+used_oa+usableLoan)) // purchase_price
+                  console.log("purchase price", numberWithCommas(shortfall+cpf_used_purchase+usableLoan)) // purchase_price
 
                 }
 
@@ -479,16 +509,19 @@
 
                   document.getElementById("set_budget_prudent").onclick = function(){
                     document.getElementById("est_purchase_price").value = getAmount(document.getElementById("budget_prudent").innerHTML)
+                    document.getElementById("est_valuation").value = getAmount(document.getElementById("budget_prudent").innerHTML)
                     estimateBudget();
                   }
 
                   document.getElementById("set_budget_moderate").onclick = function(){
                     document.getElementById("est_purchase_price").value = budget_moderate
+                    document.getElementById("est_valuation").value = budget_moderate
                     estimateBudget();
                   }
 
                   document.getElementById("set_budget_maximum").onclick = function(){
                     document.getElementById("est_purchase_price").value = budget_maximum
+                    document.getElementById("est_valuation").value = budget_maximum
                     estimateBudget();
                   }
                   
@@ -576,6 +609,7 @@
 
 
                       localStorage.est_purchase_price = document.getElementById("est_purchase_price").value;
+                      localStorage.est_valuation = document.getElementById("est_valuation").value;
                     }
                 }
                 function numberWithCommas(x) {
@@ -589,7 +623,7 @@
 
 
                 const getAmount = (amount) => {
-                  let parsedVal = parseFloat(amount.replace(/[$,]/g, ""));
+                  let parsedVal = (amount)?parseFloat(amount.replace(/[$,]/g, "")):0;
                   if (parsedVal) {
                     return parsedVal;
                   }
@@ -610,16 +644,17 @@
                       document.getElementById("years_bank").value = 25;
                     }
 
-                    document.getElementById("sellingPrice").value = localStorage.sellingPrice;
-                    document.getElementById("outstandingLoan").value = localStorage.outstandingLoan;
-                    document.getElementById("cpfRefund1").value = localStorage.cpfRefund1;
-                    document.getElementById("cpfRefund2").value = localStorage.cpfRefund2;
+                    document.getElementById("sellingPrice").value = getAmount(localStorage.sellingPrice);
+                    document.getElementById("outstandingLoan").value = getAmount(localStorage.outstandingLoan);
+                    document.getElementById("cpfRefund1").value = getAmount(localStorage.cpfRefund1);
+                    document.getElementById("cpfRefund2").value = getAmount(localStorage.cpfRefund2);
 
-                    document.getElementById("currentOA1").value = localStorage.currentOA1;
-                    document.getElementById("currentOA2").value = localStorage.currentOA2;
-                    document.getElementById("usableCash").value = localStorage.usableCash;
+                    document.getElementById("currentOA1").value = getAmount(localStorage.currentOA1);
+                    document.getElementById("currentOA2").value = getAmount(localStorage.currentOA2);
+                    document.getElementById("usableCash").value = getAmount(localStorage.usableCash);
 
-                    document.getElementById("est_purchase_price").value = localStorage.est_purchase_price;
+                    document.getElementById("est_purchase_price").value = getAmount(localStorage.est_purchase_price);
+                    document.getElementById("est_valuation").value = getAmount(localStorage.est_valuation);
 
                     if (localStorage.includeCPF1 == 'true') {
                       document.getElementById("includeCPF1").checked = true
