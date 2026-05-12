@@ -1,0 +1,703 @@
+<html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title> WeeKheong Budget Estimation </title>
+        <link rel="stylesheet" href="../css/plugins.css">
+        <style>
+        </style>
+        <!-- jQuery -->
+         <script src="../js/jquery-3.0.0.min.js"></script>
+         <script src="../js/jquery-migrate-3.0.0.min.js"></script>
+        <!-- bootstrap -->
+         <script src="../js/bootstrap.min.js"></script>
+    </head>
+    <body style="padding-bottom: 100px;">
+      <div class="container-fluid">
+        <h1 class="display-4 mt-1 mb-4">Budget Estimation</h1>
+        <div class="row">
+          <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5>Current Property</h5>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="sellingPrice">Selling Price</label>
+                  <input class="form-control" id="sellingPrice" onchange="estimateBudget()">
+                </div>
+                <div class="form-group">
+                  <label for="outstandingLoan">Outstanding Loan</label>
+                  <input class="form-control" id="outstandingLoan" onchange="estimateBudget()">
+                </div>
+                <div class="form-group">
+                  <label for="cpfRefund1">CPF Used with Accrued Interest 1</label>
+                  <input class="form-control" id="cpfRefund1" onchange="estimateBudget()">
+                </div>
+                <div class="form-group">
+                  <label for="cpfRefund2">CPF Used with Accrued Interest 2</label>
+                  <input class="form-control" id="cpfRefund2" onchange="estimateBudget()">
+                </div>
+                <div class="form-group">
+                  <label for="cashProceeds">Cash Proceeds</label>
+                  <input class="form-control" id="cashProceeds" readonly>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5>Available Funds</h5>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label for="currentOA1">Current OA 1</label>
+                  <input class="form-control" id="currentOA1" onchange="estimateBudget()">
+                </div>
+                <div class="form-group">
+                  <label for="currentOA2">Current OA 2</label>
+                  <input class="form-control" id="currentOA2" onchange="estimateBudget()">
+                </div>
+
+                <div class="form-group">
+                  <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="includeCPF1" onchange="estimateBudget()">
+                    <label class="custom-control-label" for="includeCPF1">Include CPF 1</label>
+                  </div>
+
+                  <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="includeCPF2" onchange="estimateBudget()">
+                    <label class="custom-control-label" for="includeCPF2">Include CPF 2</label>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="usableOA">Usable OA</label>
+                  <input class="form-control" id="usableOA" readonly>
+                </div>
+
+                <div class="form-group">
+                  <label for="usableCash">Cash Top Up</label>
+                  <input class="form-control" id="usableCash" onchange="estimateBudget()">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5>Loan</h5>
+              </div>
+              <div class="card-body">
+
+                <div class="form-group">
+                  <label for="loan_type_select">Loan Type</label>
+                  <select id="loan_type_select" class="form-control" onchange="calculate()">
+                    <option>Bank</option>
+                    <option>HDB</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="monthly_payment">Monthly Payment</label>
+                  <input class="form-control" id="monthly_payment" onchange="calculate()">
+                </div>
+
+                <div class="form-group">
+                  <label for="apr_bank">Interest Rate (%)</label>
+                  <input class="form-control" id="apr_bank" onchange="calculate()">
+                </div>
+
+                <div class="form-group">
+                  <label for="years_bank">Loan Tenure (years)</label>
+                  <input class="form-control" id="years_bank" onchange="calculate()"">
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="calculate();">Calculate</button>
+              <button class="btn btn-warning" data-toggle="modal" data-target="#loanDetailsModal">Loan Details</button>
+              </div>
+              <div class="card-footer">
+                <div class="form-group">
+                  <label for="loanAmount">Loan Amount</label>
+                  <input class="form-control" id="loanAmount">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5>Next Property</h5>
+              </div>
+              <div class="card-body">
+                <h6 class="card-title">Possible budget scenarios:</h6>
+
+                <div class="form-group">
+                  <ul class="list-group">
+                    <a id="set_budget_prudent" href="#!" class="list-group-item d-flex justify-content-between align-items-center">Prudent <span class="badge badge-primary badge-pill" id="budget_prudent"></span></a>
+                    <a id="set_budget_moderate" href="#!" class="list-group-item d-flex justify-content-between align-items-center">Moderate <span class="badge badge-success badge-pill" id="budget_moderate"></span></a>
+                    <a id="set_budget_maximum" href="#!" class="list-group-item d-flex justify-content-between align-items-center">Maximum <span class="badge badge-danger badge-pill" id="budget_maximum"></span></a>
+                  </ul>
+                </div>
+
+                <div class="form-group">
+                  <label for="est_purchase_price">Est Purchase Price</label>
+                  <input class="form-control" id="est_purchase_price"  onchange="estimateBudget()">
+                </div>
+                <div class="form-group">
+                  <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="is_private" onchange="estimateBudget()">
+                    <label class="custom-control-label" for="is_private">Is Private Property</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5>Expenses</h5>
+              </div>
+              <div class="card-body">
+                <h6 class="card-title">CPF Payable</h6>
+                <div class="form-group">
+                  <label for="bsd">Buyer Stamp Duty</label>
+                  <input class="form-control" id="bsd" readonly="">
+                </div>
+                <div class="form-group">
+                  <label for="legal_fee_selling">Legal Fee Selling</label>
+                  <input class="form-control" id="legal_fee_selling" value="2200">
+                </div>
+                <div class="form-group">
+                  <label for="legal_fee_buying">Legal Fee Buying</label>
+                  <input class="form-control" id="legal_fee_buying" value="2800">
+                </div>
+                <h6 class="card-title">Cash Payable</h6>
+                <div class="form-group">
+                  <label for="option_fee">Option Fee</label>
+                  <input class="form-control" id="option_fee" value="1000">
+                </div>
+                <div class="form-group">
+                  <label for="exercise_fee">Exercise Fee</label>
+                  <input class="form-control" id="exercise_fee" value="4000">
+                </div>
+                <div class="form-group">
+                  <label for="reqValuation">Request for Valuation</label>
+                  <input class="form-control" id="reqValuation" value="120">
+                </div>
+                <div class="form-group">
+                  <label for="resale_application_sell">Resale Application (Sell)</label>
+                  <input class="form-control" id="resale_application_sell" value="80">
+                </div>
+                <div class="form-group">
+                  <label for="resale_application_buy">Resale Application (Buy)</label>
+                  <input class="form-control" id="resale_application_buy" value="80"">
+                </div>
+
+                <div class="form-group">
+                  <label for="agency_fee_sell">Agency Fee + GST (Sell)</label>
+                  <input class="form-control" id="agency_fee_sell" readonly>
+                </div>
+
+                <div class="form-group">
+                  <label for="agency_fee_buy">Agency Fee + GST (Buy)</label>
+                  <input class="form-control" id="agency_fee_buy" readonly>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5>Breakdown</h5>
+              </div>
+              <div class="card-body">
+                  <div id="breakdown_content">
+                    <div class="d-flex align-items-center">
+                      <strong>Loading...</strong>
+                      <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div> <!----end of row-->
+      </div> <!----end of container-->
+
+
+      <div class="modal" tabindex="-1" id="loanDetailsModal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">Estimated Loan</div>
+            <div class="modal-body">
+              <table style="margin-left: auto;margin-right: auto;">
+                      <tr><td>Amount of the loan:</td>
+                    <td><u>$<span class="output" id="amount_bank"></span></u></tr> 
+                    <tr><td>Total payment:</td>
+                      <td>$<span class="output" id="total_bank"></span></td></tr>
+                    <tr><td>Total interest:</td>
+                      <td>$<span class="output" id="totalinterest_bank"></span></td></tr>
+                      <tr><td><span id="ratio_type_label"></span> Servicing Ratio:</td><td><span id="ratio_percent_label"></span>%</td></tr>
+                      <tr><td>Gross Monthly Income:</td><td><u style="font-family: tahoma;">$<span class="output" id="salary_bank"></span></u></td></tr>
+
+                      <tr><td>Loan-to-Value (LTV) limit:</td><td>
+                        <span id="ltv_label"></span>% of Purchase Price</td>
+                      </tr>    
+                      <tr><td>Purchase Budget:</td><td><u style="font-family: tahoma;">$<span class="output" id="purchase_price"></span></u></td></tr>
+                    </table>
+
+                    <p style="text-align: center;" class="mt-4">
+                    * This information provided is an estimate and may slightly exceed the actual loan amount due to stress testing.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+              <script>
+                let correct_password = "Gemini?"
+                if (localStorage.expiry === undefined || new Date().getTime() > localStorage.expiry) {
+                  password_prompt("Please enter your password:", "Submit", function(pwd) {
+                      if (pwd != correct_password) {
+                        alert("Wrong password!");
+                        localStorage.expiry = 0;
+                        location.reload();
+                        return;
+                        
+                      }
+                  });
+                }
+
+                function calcExpenses () {
+                  var sellingPrice = getAmount(document.getElementById("sellingPrice").value);
+                  var purchase_price = getAmount(document.getElementById("est_purchase_price").value);
+
+                  let bsd = 0;
+                  if (purchase_price <= 180000) {
+                    bsd = 0.01*purchase_price;
+                  } else if (purchase_price > 180000 && purchase_price <= 360000) {
+                    bsd = 0.02*purchase_price - 1800;
+                  } else if (purchase_price > 360000 && purchase_price <= 1000000) {
+                    bsd = 0.03*purchase_price - 5400;
+                  } else if (purchase_price > 1000000 && purchase_price <= 1500000) {
+                    bsd = 0.04*purchase_price - 15400;
+                  } else if (purchase_price > 1500000 && purchase_price <= 3000000) {
+                    bsd = 0.05*purchase_price - 30400;
+                  } else if (purchase_price > 3000000) {
+                    bsd = 0.06*purchase_price - 60400;
+                  }
+                  bsd = Math.floor(bsd);
+                  document.getElementById("bsd").value = numberWithCommas(bsd);
+
+                  document.getElementById("agency_fee_sell").value = numberWithCommas(0.02*sellingPrice+(0.02*sellingPrice*0.09));
+                  if (!document.getElementById('is_private').checked) { // hdb
+                    document.getElementById("agency_fee_buy").value = numberWithCommas(0.01*purchase_price+(0.01*purchase_price*0.09));
+                    document.getElementById("option_fee").value = '1000';
+                    document.getElementById("exercise_fee").value = '4000';
+                    document.getElementById("reqValuation").value = '120';
+                    document.getElementById("resale_application_sell").value = '80';
+                    document.getElementById("resale_application_buy").value = '80';
+                  } else {
+                    document.getElementById("agency_fee_buy").value = 0;
+                    document.getElementById("option_fee").value = numberWithCommas(0.01*purchase_price);
+                    document.getElementById("exercise_fee").value = numberWithCommas(0.04*purchase_price);
+                    document.getElementById("reqValuation").value = '0';
+                    document.getElementById("resale_application_sell").value = '0';
+                    document.getElementById("resale_application_buy").value = '0';
+                  }
+                }
+
+                function calcCashProceeds () {
+                  var sellingPrice = getAmount(document.getElementById("sellingPrice").value);
+                  var outstandingLoan = getAmount(document.getElementById("outstandingLoan").value);
+                  var cpfRefund1 = getAmount(document.getElementById("cpfRefund1").value);
+                  var cpfRefund2 = getAmount(document.getElementById("cpfRefund2").value);
+                  document.getElementById("cashProceeds").value = numberWithCommas(sellingPrice-outstandingLoan-cpfRefund1-cpfRefund2);
+                }
+
+                function calcUsableOA () {
+                  var cpfRefund1 = getAmount(document.getElementById("cpfRefund1").value);
+                  var cpfRefund2 = getAmount(document.getElementById("cpfRefund2").value);
+                  var currentOA1 = getAmount(document.getElementById("currentOA1").value);
+                  var currentOA2 = getAmount(document.getElementById("currentOA2").value);
+                  
+                  var newUsableOA = 0;
+
+                  if (document.getElementById('includeCPF1').checked) {
+                    newUsableOA += cpfRefund1+currentOA1;
+                  }
+
+                  if (document.getElementById('includeCPF2').checked) {
+                    newUsableOA += cpfRefund2+currentOA2;
+                  }
+
+                  document.getElementById("usableOA").value = numberWithCommas(newUsableOA);
+                }
+
+                function breakdown() {
+                  var purchase_price = getAmount(document.getElementById("est_purchase_price").value);
+                  var cashProceeds = getAmount(document.getElementById("cashProceeds").value);
+                  var usableOA = getAmount(document.getElementById("usableOA").value);
+                  var usableCash = getAmount(document.getElementById("usableCash").value);
+                  var loanAmount = getAmount(document.getElementById("loanAmount").value);
+                  // CPF Payable
+                  var bsd = getAmount(document.getElementById("bsd").value);
+                  var legal_fee_selling = getAmount(document.getElementById("legal_fee_selling").value);
+                  var legal_fee_buying = getAmount(document.getElementById("legal_fee_buying").value);
+                  // cash
+                  var option_fee = getAmount(document.getElementById("option_fee").value);
+                  var exercise_fee = getAmount(document.getElementById("exercise_fee").value);
+                  var reqValuation = getAmount(document.getElementById("reqValuation").value);
+                  var resale_application_sell = getAmount(document.getElementById("resale_application_sell").value);
+                  var resale_application_buy = getAmount(document.getElementById("resale_application_buy").value);
+                  // agency_fee_sell, agency_fee_buy
+                  var agency_fee_sell = getAmount(document.getElementById("agency_fee_sell").value);
+                  var agency_fee_buy = getAmount(document.getElementById("agency_fee_buy").value);
+
+                  // Loan Used:
+                  var usableLoan = 0.75*purchase_price;
+                  if (loanAmount < usableLoan){ // make sure loan amount lesser than 75%
+                    usableLoan = loanAmount;
+                  }
+
+                  var overrall_cash_used = 0; // start counting
+                  // var purchaseOA = 0; // OA used for purchase
+                  // var purchaseCash = 0; // cash used for purchase
+                  // CPF used - expenses
+                  var cpf_used_expenses = bsd + legal_fee_selling + legal_fee_buying;
+                  var cash_used_expenses = option_fee+exercise_fee+reqValuation+resale_application_sell+resale_application_buy+agency_fee_sell+agency_fee_buy;
+                  var used_oa = usableOA;
+
+                  if (cpf_used_expenses < usableOA) {
+                    used_oa -= cpf_used_expenses;
+                  } else {
+                    cpf_used_expenses = 0
+                    cash_used_expenses += cpf_used_expenses;
+                    overrall_cash_used += cpf_used_expenses;
+                  }
+
+                  var shortfall = purchase_price - usableLoan;
+                  var loan_type_select_e = document.getElementById("loan_type_select");
+                  var loan_type_text = loan_type_select_e.options[loan_type_select_e.selectedIndex].text;
+                  if (loan_type_text == 'Bank'){ // 5% has to be cash
+                    if (shortfall-(0.05*purchase_price) < used_oa) {
+                      used_oa = shortfall-(0.05*purchase_price);
+                    }
+                  }
+                  if (shortfall < used_oa) {
+                    used_oa = shortfall; // use up all the OA
+                    shortfall = 0
+                  } else {
+                    shortfall -= used_oa;
+                  }
+                  
+                  
+                  overrall_cash_used += cash_used_expenses
+                  overrall_cash_used += shortfall
+
+                  // TO DO:
+                  /*
+                    summary of breakdown, cash/ cpf total expenses and funds used for purchase 
+                    show percentage of loan, cpf and cash of the purchase amount
+                    if cash available more than overral cash used, show the cash out amount
+                    if there is more cpf, highlight that it is possible to use a smaller loan amount
+                    if overrall cash used is more than cash available, show the more cash top up needed amount
+                    if oa lower than expenses, show that bsd and legal fee are added to cash expenses
+
+                    TEST TEST TEST
+                  */
+
+                  var html = `<h6 class="card-title">Total Available Funds</h6>`;
+                  html += `<p>CPF OA:<br/>$${numberWithCommas(usableOA)}</p>`
+                  html += `<p>Cash:<br/>$${numberWithCommas(usableCash+cashProceeds)}</p>`
+
+                  // purchase 
+                  html += `<h6 class="card-title">Property Payment</h6>`
+                  html += `<p>Purchase Price:<br/>$${numberWithCommas(purchase_price)}</p>`
+                  html += `<p>Loan Amount:<br/>$${numberWithCommas(usableLoan)} (${numberWithCommas(usableLoan/purchase_price*100)}%)</p>`
+                  html += `<p>CPF OA:<br/>$${numberWithCommas(used_oa)} (${numberWithCommas(used_oa/purchase_price*100)}%)</p>`
+                  html += `<p>Cash:<br/>$${numberWithCommas(shortfall)} (${numberWithCommas(shortfall/purchase_price*100)}%)</p>`
+
+                  // expenses
+                  html += `<h6 class="card-title">Total Expenses</h6>`
+                  html += `<p>CPF OA:<br/>$${numberWithCommas(cpf_used_expenses)}</p>`
+                  html += `<p>Cash:<br/>$${numberWithCommas(cash_used_expenses)}</p>`
+
+                  // balance
+                  html += `<h6 class="card-title">Balance</h6>`
+                  html += `<p>CPF OA:<br/>$${numberWithCommas(usableOA-used_oa)}</p>`
+                  if (usableCash+cashProceeds > overrall_cash_used) {
+                    html += `<p class="bg-success">Cash:<br/>$${numberWithCommas(usableCash+cashProceeds-overrall_cash_used)}</p>`
+                  } else {
+                    html += `<p class="bg-danger">Cash:<br/>$${numberWithCommas(usableCash+cashProceeds-overrall_cash_used)}</p>`
+                    html += `<div class="alert alert-danger">More cash needed! </div>`
+                  }
+
+                  // print
+                  document.getElementById("breakdown_content").innerHTML = html;
+
+                  console.log("cpf available",numberWithCommas(cpf_used_expenses+used_oa))
+                  console.log("cash available",numberWithCommas(usableCash+cashProceeds))
+
+                  console.log("overrall_cash_used",numberWithCommas(overrall_cash_used))
+                  console.log("total oa used for expenses",numberWithCommas(cpf_used_expenses))
+                  console.log("total cash used for expenses",numberWithCommas(cash_used_expenses))
+
+                  console.log("cash for purchase",numberWithCommas(shortfall)) // cash for purchase
+                  console.log("oa for purchase",numberWithCommas(used_oa)) // OA for purchase
+                  console.log("Loan used", numberWithCommas(usableLoan)) // Loan used
+
+                  console.log("purchase price", numberWithCommas(purchase_price)) // purchase_price
+                  console.log("purchase price", numberWithCommas(shortfall+used_oa+usableLoan)) // purchase_price
+
+                }
+
+                function estimateBudget () {
+                  calcCashProceeds();
+                  calcUsableOA();
+                  /* actual calc for budget */
+                  var sellingPrice = getAmount(document.getElementById("sellingPrice").value);
+                  var cashProceeds = getAmount(document.getElementById("cashProceeds").value);
+                  var usableOA = getAmount(document.getElementById("usableOA").value);
+                  var usableCash = getAmount(document.getElementById("usableCash").value);
+                  var loanAmount = getAmount(document.getElementById("loanAmount").value);
+
+                  var agency_fee_sell = 0.02*sellingPrice+(0.02*sellingPrice*0.09);
+
+                  // moderate
+                  var budget_moderate = numberWithCommas(0.9*((cashProceeds * 0.8 - agency_fee_sell) + usableOA + usableCash + loanAmount))
+                  document.getElementById("budget_moderate").innerHTML = '$'+budget_moderate;
+
+                  // maximum
+                  var budget_maximum = numberWithCommas(0.9*((cashProceeds - agency_fee_sell) + usableOA + usableCash + loanAmount));
+                  document.getElementById("budget_maximum").innerHTML = '$'+budget_maximum;
+
+                  document.getElementById("set_budget_prudent").onclick = function(){
+                    document.getElementById("est_purchase_price").value = getAmount(document.getElementById("budget_prudent").innerHTML)
+                    estimateBudget();
+                  }
+
+                  document.getElementById("set_budget_moderate").onclick = function(){
+                    document.getElementById("est_purchase_price").value = budget_moderate
+                    estimateBudget();
+                  }
+
+                  document.getElementById("set_budget_maximum").onclick = function(){
+                    document.getElementById("est_purchase_price").value = budget_maximum
+                    estimateBudget();
+                  }
+                  
+                  if (getAmount(document.getElementById("est_purchase_price").value) > 0) {
+                    calcExpenses();
+                    breakdown();
+                  }
+                  save();
+                }
+
+                let tdsr = 55;
+                let msr = 30;
+                let ltv_bank_max = 75;
+                let ltv_hdb_max = 80;
+                var ltv_selected = ltv_bank_max;
+                var sr_selected = tdsr;
+
+                function loan_calculate () {
+                    var pmt = document.getElementById("monthly_payment").value;
+                    var y = document.getElementById("years_bank").value;
+                    var annual_i = document.getElementById("apr_bank").value;
+                    var n = y*12;
+                    var i = annual_i/100/12;
+                    var x = Math.pow(1+i,n);
+                    var pv = pmt/i * (1-(1/x));
+                    
+                    document.getElementById("loanAmount").value = numberWithCommas(pv);
+                    document.getElementById("amount_bank").innerHTML = numberWithCommas(pv);
+                    document.getElementById("total_bank").innerHTML = numberWithCommas(pmt*n);
+                    document.getElementById("totalinterest_bank").innerHTML = numberWithCommas(pmt*n-pv);
+                    document.getElementById("salary_bank").innerHTML = numberWithCommas(pmt/sr_selected*100);
+                    document.getElementById("purchase_price").innerHTML = numberWithCommas(pv/ltv_selected*100);
+
+                    document.getElementById("budget_prudent").innerHTML = '$'+numberWithCommas(pv/ltv_selected*100);
+                }
+
+                function calculate() {
+                    var loan_type_select_e = document.getElementById("loan_type_select");
+                    var loan_type_text = loan_type_select_e.options[loan_type_select_e.selectedIndex].text;
+
+                    ltv_selected = ltv_bank_max;
+                    sr_selected = tdsr;
+                    document.getElementById("ratio_type_label").innerHTML = "Total Debt"
+                    if (loan_type_text == "HDB") {
+                      ltv_selected = ltv_hdb_max;
+                      sr_selected = msr;
+                      document.getElementById("ratio_type_label").innerHTML = "Mortgage"
+                    }
+                    document.getElementById("ltv_label").innerHTML = ltv_selected;
+                    document.getElementById("ratio_percent_label").innerHTML = sr_selected;
+                    //Look up the input and output elements in the document
+                    
+                    loan_calculate();
+                    estimateBudget();
+
+                    // Save the user's input so we can restore it the next time they visit
+                    // save();
+                    
+                }
+                // Save the user's input as properties of the localStorage object. Those
+                // properties will still be there when the user visits in the future
+                // This storage feature will not work in some browsers (Firefox, e.g.) if you
+                // run the example from a local file:// URL. It does work over HTTP, however.
+                function save() {
+                    if (window.localStorage) { // Only do this if the browser supports it
+                      var loan_type_select_e = document.getElementById("loan_type_select");
+                      var loan_type_i = loan_type_select_e.selectedIndex;
+                      localStorage.loan_type_i = loan_type_i;
+                      localStorage.monthly_payment = document.getElementById("monthly_payment").value;
+                      localStorage.apr_bank = document.getElementById("apr_bank").value;
+                      localStorage.years_bank = document.getElementById("years_bank").value;
+                      
+                      // new fields
+                      localStorage.sellingPrice = document.getElementById("sellingPrice").value;
+                      localStorage.outstandingLoan = document.getElementById("outstandingLoan").value;
+                      localStorage.cpfRefund1 = document.getElementById("cpfRefund1").value;
+                      localStorage.cpfRefund2 = document.getElementById("cpfRefund2").value;
+
+                      localStorage.currentOA1 = document.getElementById("currentOA1").value;
+                      localStorage.currentOA2 = document.getElementById("currentOA2").value;
+                      localStorage.usableCash = document.getElementById("usableCash").value;
+                      localStorage.includeCPF1 = document.getElementById("includeCPF1").checked;
+                      localStorage.includeCPF2 = document.getElementById("includeCPF2").checked;
+                      localStorage.is_private = document.getElementById("is_private").checked;
+
+
+                      localStorage.est_purchase_price = document.getElementById("est_purchase_price").value;
+                    }
+                }
+                function numberWithCommas(x) {
+                    x=x.toFixed(2);
+                    var parts = x.toString().split(".");
+                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    return parts.join(".");
+
+                    return x;
+                }
+
+
+                const getAmount = (amount) => {
+                  let parsedVal = parseFloat(amount.replace(/[$,]/g, ""));
+                  if (parsedVal) {
+                    return parsedVal;
+                  }
+                  else { return 0; }
+                }
+                // Automatically attempt to restore input fields when the document first loads.
+                window.onload = function() {
+                    // If the browser supports localStorage and we have some stored data
+                    if (window.localStorage && localStorage.loan_type_i) {
+                      document.getElementById('loan_type_select').getElementsByTagName('option')[localStorage.loan_type_i].selected = 'selected'
+
+                        document.getElementById("monthly_payment").value = localStorage.monthly_payment;
+                        document.getElementById("apr_bank").value = localStorage.apr_bank;
+                        document.getElementById("years_bank").value = localStorage.years_bank;
+                    } else {
+                      document.getElementById("monthly_payment").value = 1000;
+                      document.getElementById("apr_bank").value = 4;
+                      document.getElementById("years_bank").value = 25;
+                    }
+
+                    document.getElementById("sellingPrice").value = localStorage.sellingPrice;
+                    document.getElementById("outstandingLoan").value = localStorage.outstandingLoan;
+                    document.getElementById("cpfRefund1").value = localStorage.cpfRefund1;
+                    document.getElementById("cpfRefund2").value = localStorage.cpfRefund2;
+
+                    document.getElementById("currentOA1").value = localStorage.currentOA1;
+                    document.getElementById("currentOA2").value = localStorage.currentOA2;
+                    document.getElementById("usableCash").value = localStorage.usableCash;
+
+                    document.getElementById("est_purchase_price").value = localStorage.est_purchase_price;
+
+                    if (localStorage.includeCPF1 == 'true') {
+                      document.getElementById("includeCPF1").checked = true
+                    }
+
+                    if (localStorage.includeCPF2 == 'true') {
+                      document.getElementById("includeCPF2").checked = true
+                    }
+
+                    if (localStorage.is_private == 'true') {
+                      document.getElementById("is_private").checked = true
+                    }
+                    
+
+                    calculate();
+                    
+                };
+
+                function password_prompt (label_message, button_message, arg3) {
+
+                  if (typeof label_message !== "string") var label_message = "Password:";
+                  if (typeof button_message !== "string") var button_message = "Submit";
+                  if (typeof arg3 === "function") {
+                      var callback = arg3;
+                  }
+                  if (typeof callback !== "function") var callback = function(password){};
+
+                  var submit = function() {
+                      var date = new Date();
+                      localStorage.expiry = date.setDate(date.getDate() + 1);
+
+                      callback(input.value);
+                      document.body.removeChild(div);
+                      window.removeEventListener("resize", resize, false);
+                  };
+                  var resize = function() {
+                      div.style.left = ((window.innerWidth / 2) - (width / 2)) + "px";
+                      div.style.top = ((window.innerHeight / 2) - (height / 2)) + "px";
+                  };
+
+                  var div = document.createElement("div");
+                  div.id = "password_prompt";
+                  div.style.background = "white";
+                  div.style.color = "black";
+                  div.style.border = "1px solid black";
+                  div.style.padding = "16px";
+                  div.style.position = "fixed";
+
+                  var label = document.createElement("label");
+                  label.id = "password_prompt_label";
+                  label.innerHTML = label_message;
+                  label.for = "password_prompt_input";
+                  div.appendChild(label);
+
+                  div.appendChild(document.createElement("br"));
+
+                  var input = document.createElement("input");
+                  input.id = "password_prompt_input";
+                  input.type = "password";
+                  input.addEventListener("keyup", function(e) {
+                      if (event.keyCode == 13) submit();
+                  }, false);
+                  div.appendChild(input);
+
+                  div.appendChild(document.createElement("br"));
+                  div.appendChild(document.createElement("br"));
+
+                  var button = document.createElement("button");
+                  button.innerHTML = button_message;
+                  button.addEventListener("click", submit, false);
+                  div.appendChild(button);
+
+                  document.body.appendChild(div);
+                  input.focus();
+                  window.addEventListener("resize", resize, false);
+                };
+              
+              </script>
+              <footer style="font-size: 20px;color: #111;text-align: center;font-size: 20px;text-align: center;background-color: #00a884;padding: 8px 15px;color: #FFF;border-radius: 30px;position: fixed;bottom: 0;right:-25px;padding:8px 50px;z-index:9;"><a href="https://api.whatsapp.com/send?phone=6586989590" style="color: #FFF;font-family: sans-serif;">► WhatsApp&nbsp;8698&nbsp;9590</a></footer>
+    </body>
+</html>
