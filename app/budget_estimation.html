@@ -5,6 +5,7 @@
         <title> WeeKheong Budget Estimation </title>
         <link rel="stylesheet" href="../css/plugins.css">
         <style>
+            @media print{.toHide{display:none;}}
         </style>
         <!-- jQuery -->
          <script src="../js/jquery-3.0.0.min.js"></script>
@@ -156,6 +157,16 @@
                     <label class="custom-control-label" for="is_private">Is Private Property</label>
                   </div>
                 </div>
+
+                <h6 class="card-title">Deposit</h6>
+                <div class="form-group">
+                  <label for="option_fee">Option Fee</label>
+                  <input class="form-control" id="option_fee" value="1000">
+                </div>
+                <div class="form-group">
+                  <label for="exercise_fee">Exercise Fee</label>
+                  <input class="form-control" id="exercise_fee" value="4000">
+                </div>
               </div>
             </div>
           </div>
@@ -181,14 +192,6 @@
                 </div>
                 <h6 class="card-title">Cash Payable</h6>
                 <div class="form-group">
-                  <label for="option_fee">Option Fee</label>
-                  <input class="form-control" id="option_fee" value="1000">
-                </div>
-                <div class="form-group">
-                  <label for="exercise_fee">Exercise Fee</label>
-                  <input class="form-control" id="exercise_fee" value="4000">
-                </div>
-                <div class="form-group">
                   <label for="reqValuation">Request for Valuation</label>
                   <input class="form-control" id="reqValuation" value="120">
                 </div>
@@ -199,6 +202,10 @@
                 <div class="form-group">
                   <label for="resale_application_buy">Resale Application (Buy)</label>
                   <input class="form-control" id="resale_application_buy" value="80"">
+                </div>
+                <div class="form-group">
+                  <label for="miscFee">Miscellaneous Fee</label>
+                  <input class="form-control" id="miscFee" value="600">
                 </div>
 
                 <div class="form-group">
@@ -307,6 +314,7 @@
                     document.getElementById("reqValuation").value = '120';
                     document.getElementById("resale_application_sell").value = '80';
                     document.getElementById("resale_application_buy").value = '80';
+                    document.getElementById("miscFee").value = '600';
                   } else {
                     document.getElementById("agency_fee_buy").value = 0;
                     document.getElementById("option_fee").value = numberWithCommas(0.01*purchase_price);
@@ -314,6 +322,7 @@
                     document.getElementById("reqValuation").value = '0';
                     document.getElementById("resale_application_sell").value = '0';
                     document.getElementById("resale_application_buy").value = '0';
+                    document.getElementById("miscFee").value = '0';
                   }
                 }
 
@@ -344,7 +353,7 @@
                   document.getElementById("usableOA").value = numberWithCommas(newUsableOA);
                 }
 
-                function breakdown() {
+                function breakdown () {
                   var purchase_price = getAmount(document.getElementById("est_purchase_price").value);
                   var valuation = getAmount(document.getElementById("est_valuation").value);
                   valuation = (valuation<purchase_price) ? valuation : purchase_price;
@@ -361,6 +370,7 @@
                   var option_fee = getAmount(document.getElementById("option_fee").value);
                   var exercise_fee = getAmount(document.getElementById("exercise_fee").value);
                   var reqValuation = getAmount(document.getElementById("reqValuation").value);
+                  var miscFee = getAmount(document.getElementById("miscFee").value);
                   var resale_application_sell = getAmount(document.getElementById("resale_application_sell").value);
                   var resale_application_buy = getAmount(document.getElementById("resale_application_buy").value);
                   // agency_fee_sell, agency_fee_buy
@@ -376,7 +386,7 @@
                   var overrall_cash_used = 0; // start counting
                   // CPF used - expenses
                   var cpf_used_expenses = bsd + legal_fee_selling + legal_fee_buying;
-                  var cash_used_expenses = option_fee+exercise_fee+reqValuation+resale_application_sell+resale_application_buy+agency_fee_sell+agency_fee_buy;
+                  var cash_used_expenses = miscFee+reqValuation+resale_application_sell+resale_application_buy+agency_fee_sell+agency_fee_buy;
                   var balance_oa = usableOA;
                   var cpf_used_purchase = 0
 
@@ -388,24 +398,20 @@
                     overrall_cash_used += cpf_used_expenses;
                   } // minus expenses
 
-                  var shortfall = valuation - usableLoan; // cash portion of the valuation
+                  var cash_only_portion = option_fee+exercise_fee;
+                  var shortfall = valuation - usableLoan; // extra cash portion of the valuation
                   var loan_type_select_e = document.getElementById("loan_type_select");
                   var loan_type_text = loan_type_select_e.options[loan_type_select_e.selectedIndex].text;
 
                   if (loan_type_text == 'Bank'){ // 5% has to be cash
-                    if (shortfall-(0.05*valuation) < balance_oa) {
-                      cpf_used_purchase = shortfall-(0.05*valuation); 
-                      // use cpf for the rest of shortfall
-                    } else { 
-                      cpf_used_purchase = balance_oa;
-                    }
-                  } else { // hdb
-                    if (shortfall < balance_oa) {
-                      cpf_used_purchase = shortfall; 
-                      // use cpf for the rest of shortfall
-                    } else { // shortfall more than balance
-                      cpf_used_purchase = balance_oa;
-                    }
+                    cash_only_portion = 0.05*valuation; 
+                  } 
+                  
+                  if (shortfall-cash_only_portion < balance_oa) {
+                    cpf_used_purchase = shortfall-cash_only_portion; 
+                    // use cpf for the rest of shortfall
+                  } else { 
+                    cpf_used_purchase = balance_oa;
                   }
 
                   var cov = purchase_price-valuation;
@@ -471,19 +477,19 @@
                   document.getElementById("breakdown_content").innerHTML = html;
 
                   // testing
-                  console.log("cpf available",numberWithCommas(cpf_used_expenses+cpf_used_purchase))
-                  console.log("cash available",numberWithCommas(usableCash+cashProceeds))
+                  // console.log("cpf available",numberWithCommas(cpf_used_expenses+cpf_used_purchase))
+                  // console.log("cash available",numberWithCommas(usableCash+cashProceeds))
 
-                  console.log("overrall_cash_used",numberWithCommas(overrall_cash_used))
-                  console.log("total oa used for expenses",numberWithCommas(cpf_used_expenses))
-                  console.log("total cash used for expenses",numberWithCommas(cash_used_expenses))
+                  // console.log("overrall_cash_used",numberWithCommas(overrall_cash_used))
+                  // console.log("total oa used for expenses",numberWithCommas(cpf_used_expenses))
+                  // console.log("total cash used for expenses",numberWithCommas(cash_used_expenses))
 
-                  console.log("cash for purchase",numberWithCommas(shortfall)) // cash for purchase
-                  console.log("oa for purchase",numberWithCommas(cpf_used_purchase)) // OA for purchase
-                  console.log("Loan used", numberWithCommas(usableLoan)) // Loan used
+                  // console.log("cash for purchase",numberWithCommas(shortfall)) // cash for purchase
+                  // console.log("oa for purchase",numberWithCommas(cpf_used_purchase)) // OA for purchase
+                  // console.log("Loan used", numberWithCommas(usableLoan)) // Loan used
 
-                  console.log("purchase price", numberWithCommas(purchase_price)) // purchase_price
-                  console.log("purchase price", numberWithCommas(shortfall+cpf_used_purchase+usableLoan)) // purchase_price
+                  // console.log("purchase price", numberWithCommas(purchase_price)) // purchase_price
+                  // console.log("purchase price", numberWithCommas(shortfall+cpf_used_purchase+usableLoan)) // purchase_price
 
                 }
 
@@ -500,11 +506,15 @@
                   var agency_fee_sell = 0.02*sellingPrice+(0.02*sellingPrice*0.09);
 
                   // moderate
-                  var budget_moderate = numberWithCommas(0.9*((cashProceeds * 0.8 - agency_fee_sell) + usableOA + usableCash + loanAmount))
+                  var budget_moderate = numberWithCommas(0.8*((cashProceeds * 0.8 - agency_fee_sell) + usableOA + usableCash + loanAmount))
                   document.getElementById("budget_moderate").innerHTML = '$'+budget_moderate;
 
                   // maximum
-                  var budget_maximum = numberWithCommas(0.9*((cashProceeds - agency_fee_sell) + usableOA + usableCash + loanAmount));
+                  var est_max_ratio = 0.9;
+                  var est_max_offset = 0;
+                  var est_max_budget = (cashProceeds - agency_fee_sell) + usableOA + usableCash + loanAmount;
+                  
+                  var budget_maximum = numberWithCommas(est_max_ratio*est_max_budget-est_max_offset);
                   document.getElementById("budget_maximum").innerHTML = '$'+budget_maximum;
 
                   document.getElementById("set_budget_prudent").onclick = function(){
@@ -528,7 +538,10 @@
                   if (getAmount(document.getElementById("est_purchase_price").value) > 0) {
                     calcExpenses();
                     breakdown();
+                  } else {
+                    document.getElementById("breakdown_content").innerHTML = '<p class="text-danger">Please provide purchase price.</p>';
                   }
+                  
                   save();
                 }
 
@@ -697,6 +710,7 @@
 
                   var div = document.createElement("div");
                   div.id = "password_prompt";
+                  div.class="toHide";
                   div.style.background = "white";
                   div.style.color = "black";
                   div.style.border = "1px solid black";
