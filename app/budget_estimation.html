@@ -470,9 +470,9 @@
                     html += `<div class="alert alert-primary">You may consider taking a smaller loan.</div>`
                   }
                   if (usableCash+cashProceeds > overrall_cash_used) {
-                    html += `<p class="bg-success">Cash: $${numberWithCommas(usableCash+cashProceeds-overrall_cash_used)}</p>`
+                    html += `<p class="bg-success text-white">Cash: $${numberWithCommas(usableCash+cashProceeds-overrall_cash_used)}</p>`
                   } else {
-                    html += `<p class="bg-danger">Cash: $${numberWithCommas(usableCash+cashProceeds-overrall_cash_used)}</p>`
+                    html += `<p class="bg-danger text-white">Cash: $${numberWithCommas(usableCash+cashProceeds-overrall_cash_used)}</p>`
                     html += `<div class="alert alert-danger">More cash needed. </div>`
                   }
 
