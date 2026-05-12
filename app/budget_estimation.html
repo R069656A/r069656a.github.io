@@ -19,7 +19,7 @@
         <div class="row">
           <div class="col-lg-4 mb-4">
             <div class="card h-100">
-              <div class="card-header">
+              <div class="card-header bg-warning">
                 <h5>Current Property</h5>
               </div>
               <div class="card-body">
@@ -39,6 +39,8 @@
                   <label for="cpfRefund2">CPF Used with Accrued Interest 2</label>
                   <input class="form-control" id="cpfRefund2" onchange="estimateBudget()">
                 </div>
+              </div>
+              <div class="card-footer bg-info">
                 <div class="form-group">
                   <label for="cashProceeds">Cash Proceeds</label>
                   <input class="form-control" id="cashProceeds" readonly>
@@ -48,7 +50,7 @@
           </div>
           <div class="col-lg-4 mb-4">
             <div class="card h-100">
-              <div class="card-header">
+              <div class="card-header bg-warning">
                 <h5>Available Funds</h5>
               </div>
               <div class="card-body">
@@ -72,7 +74,8 @@
                     <label class="custom-control-label" for="includeCPF2">Include CPF 2</label>
                   </div>
                 </div>
-
+              </div>
+              <div class="card-footer bg-success">
                 <div class="form-group">
                   <label for="usableOA">Usable OA</label>
                   <input class="form-control" id="usableOA" readonly>
@@ -87,7 +90,7 @@
           </div>
           <div class="col-lg-4 mb-4">
             <div class="card h-100">
-              <div class="card-header">
+              <div class="card-header bg-warning">
                 <h5>Loan</h5>
               </div>
               <div class="card-body">
@@ -117,7 +120,7 @@
                 <button type="button" class="btn btn-secondary" onclick="calculate();">Calculate</button>
               <button class="btn btn-warning" data-toggle="modal" data-target="#loanDetailsModal">Loan Details</button>
               </div>
-              <div class="card-footer">
+              <div class="card-footer bg-primary">
                 <div class="form-group">
                   <label for="loanAmount">Loan Amount</label>
                   <input class="form-control" id="loanAmount">
@@ -128,7 +131,7 @@
 
           <div class="col-lg-4 mb-4">
             <div class="card h-100">
-              <div class="card-header">
+              <div class="card-header bg-warning">
                 <h5>Next Property</h5>
               </div>
               <div class="card-body">
@@ -173,7 +176,7 @@
 
           <div class="col-lg-4 mb-4">
             <div class="card h-100">
-              <div class="card-header">
+              <div class="card-header bg-warning">
                 <h5>Expenses</h5>
               </div>
               <div class="card-body">
@@ -223,7 +226,7 @@
 
           <div class="col-lg-4 mb-4">
             <div class="card h-100">
-              <div class="card-header">
+              <div class="card-header bg-warning">
                 <h5>Breakdown</h5>
               </div>
               <div class="card-body">
