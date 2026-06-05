@@ -196,28 +196,28 @@
                 <h6 class="card-title">Cash Payable</h6>
                 <div class="form-group">
                   <label for="reqValuation">Request for Valuation</label>
-                  <input class="form-control" id="reqValuation" value="120">
+                  <input class="form-control" id="reqValuation" value="120" onchange="estimateBudget()">
                 </div>
                 <div class="form-group">
                   <label for="resale_application_sell">Resale Application (Sell)</label>
-                  <input class="form-control" id="resale_application_sell" value="80">
+                  <input class="form-control" id="resale_application_sell" value="80" onchange="estimateBudget()">
                 </div>
                 <div class="form-group">
                   <label for="resale_application_buy">Resale Application (Buy)</label>
-                  <input class="form-control" id="resale_application_buy" value="80"">
+                  <input class="form-control" id="resale_application_buy" value="80"" onchange="estimateBudget()">
                 </div>
                 <div class="form-group">
                   <label for="miscFee">Miscellaneous Fee</label>
-                  <input class="form-control" id="miscFee" value="600">
+                  <input class="form-control" id="miscFee" value="600" onchange="estimateBudget()">
                 </div>
 
                 <div class="form-group">
-                  <label for="agency_fee_sell">Agency Fee + GST (Sell)</label>
+                  <label for="agency_fee_sell">2% Agency Fee + GST (Sell)</label>
                   <input class="form-control" id="agency_fee_sell" readonly>
                 </div>
 
                 <div class="form-group">
-                  <label for="agency_fee_buy">Agency Fee + GST (Buy)</label>
+                  <label for="agency_fee_buy">1% Agency Fee + GST (Buy)</label>
                   <input class="form-control" id="agency_fee_buy" readonly>
                 </div>
               </div>
@@ -314,10 +314,10 @@
                     document.getElementById("agency_fee_buy").value = numberWithCommas(0.01*purchase_price+(0.01*purchase_price*0.09));
                     document.getElementById("option_fee").value = '1000';
                     document.getElementById("exercise_fee").value = '4000';
-                    document.getElementById("reqValuation").value = '120';
-                    document.getElementById("resale_application_sell").value = '80';
-                    document.getElementById("resale_application_buy").value = '80';
-                    document.getElementById("miscFee").value = '600';
+                    // document.getElementById("reqValuation").value = '120';
+                    // document.getElementById("resale_application_sell").value = '80';
+                    // document.getElementById("resale_application_buy").value = '80';
+                    // document.getElementById("miscFee").value = '600';
                   } else {
                     document.getElementById("agency_fee_buy").value = 0;
                     document.getElementById("option_fee").value = numberWithCommas(0.01*purchase_price);
@@ -325,7 +325,7 @@
                     document.getElementById("reqValuation").value = '0';
                     document.getElementById("resale_application_sell").value = '0';
                     document.getElementById("resale_application_buy").value = '0';
-                    document.getElementById("miscFee").value = '0';
+                    // document.getElementById("miscFee").value = '0';
                   }
                 }
 
