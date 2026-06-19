@@ -335,6 +335,12 @@
                   var cpfRefund1 = getAmount(document.getElementById("cpfRefund1").value);
                   var cpfRefund2 = getAmount(document.getElementById("cpfRefund2").value);
                   document.getElementById("cashProceeds").value = numberWithCommas(sellingPrice-outstandingLoan-cpfRefund1-cpfRefund2);
+
+                  // beautify
+                  document.getElementById("sellingPrice").value = numberWithCommas(sellingPrice);
+                  document.getElementById("outstandingLoan").value = numberWithCommas(outstandingLoan);
+                  document.getElementById("cpfRefund1").value = numberWithCommas(cpfRefund1);
+                  document.getElementById("cpfRefund2").value = numberWithCommas(cpfRefund2);
                 }
 
                 function calcUsableOA () {
@@ -354,6 +360,12 @@
                   }
 
                   document.getElementById("usableOA").value = numberWithCommas(newUsableOA);
+
+                  // beautify
+                  document.getElementById("cpfRefund1").value = numberWithCommas(cpfRefund1);
+                  document.getElementById("cpfRefund2").value = numberWithCommas(cpfRefund2);
+                  document.getElementById("currentOA1").value = numberWithCommas(currentOA1);
+                  document.getElementById("currentOA2").value = numberWithCommas(currentOA2);
                 }
 
                 function breakdown () {
@@ -556,7 +568,7 @@
                 var sr_selected = tdsr;
 
                 function loan_calculate () {
-                    var pmt = document.getElementById("monthly_payment").value;
+                    var pmt = getAmount(document.getElementById("monthly_payment").value);
                     var y = document.getElementById("years_bank").value;
                     var annual_i = document.getElementById("apr_bank").value;
                     var n = y*12;
