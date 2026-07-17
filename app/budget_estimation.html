@@ -95,13 +95,23 @@
               </div>
               <div class="card-body">
 
-                <div class="form-group">
-                  <label for="loan_type_select">Loan Type</label>
-                  <select id="loan_type_select" class="form-control" onchange="calculate()">
-                    <option>Bank</option>
-                    <option>HDB</option>
-                  </select>
+                <div class="form-row">
+                  <div class="form-group col-6">
+                    <label for="loan_type_select">Loan Type</label>
+                    <select id="loan_type_select" class="form-control" onchange="calculate()">
+                      <option>Bank</option>
+                      <option>HDB</option>
+                    </select>
+                  </div>
+                  <div class="form-group col-6">
+                    <label>&nbsp;</label>
+                    <div class="custom-control custom-switch">
+                      <input type="checkbox" class="custom-control-input" id="secondHDBLoan" onchange="estimateBudget()">
+                      <label class="custom-control-label" for="secondHDBLoan">2nd HDB Loan</label>
+                    </div>
+                  </div>
                 </div>
+                
 
                 <div class="form-group">
                   <label for="monthly_payment">Monthly Payment</label>
@@ -115,7 +125,7 @@
 
                 <div class="form-group">
                   <label for="years_bank">Loan Tenure (years)</label>
-                  <input class="form-control" id="years_bank" onchange="calculate()"">
+                  <input class="form-control" id="years_bank" onchange="calculate()">
                 </div>
                 <button type="button" class="btn btn-secondary" onclick="calculate();">Calculate</button>
               <button class="btn btn-warning" data-toggle="modal" data-target="#loanDetailsModal">Loan Details</button>
@@ -429,6 +439,11 @@
                   if (loan_type_text == 'Bank'){ // 5% has to be cash
                     cash_only_portion = 0.05*valuation; 
                   } 
+
+                  if(loan_type_text == 'HDB' && document.getElementById('secondHDBLoan').checked) {
+                    // second hdb loan
+                    cash_only_portion = cashProceeds/2;
+                  }
                   
                   if (shortfall-cash_only_portion < balance_oa) {
                     cpf_used_purchase = shortfall-cash_only_portion; 
@@ -486,8 +501,16 @@
                   // balance
                   html += `<h6 class="card-title">Balance</h6>`
                   html += `<p class="text-success mb-0">CPF OA: $${numberWithCommas(balance_oa)}</p>`
-                  if (balance_oa > 0) {
-                    html += `<div class="alert alert-primary">You may consider taking a smaller loan.</div>`
+                  if (parseInt(balance_oa) > 0) {
+                    var principal = parseFloat(usableLoan-balance_oa);
+                    var interest = parseFloat(getAmount(document.getElementById("apr_bank").value)) / 100 / 12;
+                    var payments = parseFloat(getAmount(document.getElementById("years_bank").value)) * 12;
+  
+                    // compute the monthly payment figure
+                    var x = Math.pow(1 + interest, payments); //Math.pow computes powers
+                    var monthly = (principal*x*interest)/(x-1);
+                    // usableLoan
+                    html += `<div class="alert alert-primary">You may consider taking a smaller loan.<br/> Loan amount needed is about <strong>$${numberWithCommas(usableLoan-balance_oa)}</strong>.<br/> Monthly payment will be about <strong>$${numberWithCommas(monthly)}</strong>.</div>`
                   }
                   if (usableCash+cashProceeds > overrall_cash_used) {
                     html += `<p class="bg-success text-white">Cash: $${numberWithCommas(usableCash+cashProceeds-overrall_cash_used)}</p>`
@@ -643,6 +666,8 @@
                       localStorage.includeCPF2 = document.getElementById("includeCPF2").checked;
                       localStorage.is_private = document.getElementById("is_private").checked;
 
+                      localStorage.secondHDBLoan = document.getElementById("secondHDBLoan").checked;
+
 
                       localStorage.est_purchase_price = document.getElementById("est_purchase_price").value;
                       localStorage.est_valuation = document.getElementById("est_valuation").value;
@@ -702,6 +727,10 @@
 
                     if (localStorage.is_private == 'true') {
                       document.getElementById("is_private").checked = true
+                    }
+
+                    if (localStorage.secondHDBLoan == 'true') {
+                      document.getElementById("secondHDBLoan").checked = true
                     }
                     
 

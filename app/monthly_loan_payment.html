@@ -109,19 +109,6 @@
                     // compute the monthly payment figure
                     var x = Math.pow(1 + interest, payments); //Math.pow computes powers
                     var monthly = (principal*x*interest)/(x-1);
-
-                    // If the result is a finite number, the user's input was good and
-                    // we have meaningful results to display
-                    if (isFinite(monthly)){
-                        // Fill in the output fields, rounding to 2 decimal places
-                        payment.innerHTML = numberWithCommas(monthly);
-                        total.innerHTML = numberWithCommas((monthly * payments));
-                        totalinterest.innerHTML = numberWithCommas(((monthly*payments)-principal));
-                        salary.innerHTML = numberWithCommas((monthly/ratio*100));
-                        amount.innerHTML = numberWithCommas(purchase_price.value/100*ltv);
-
-                        chart(graph, principal, interest, monthly, payments);
-                    }
                 }
 
                 function calculate() {
